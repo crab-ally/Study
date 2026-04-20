@@ -25,26 +25,26 @@
 
 ### 2.1 조건문
 - **if 문**:
-'''
+```
 if 조건:
     statement
 elif 조건:
     statement
 else:
     statement
-'''
+```
 
 ### 2.2 반복문
 - **for 문**:
-'''
+```
 for 변수 in 반복대상:
     statement
-'''
+```
 - **while 문**:
-'''
+```
 while 조건:
     statement
-'''
+```
 
 ### 2.3 break와 continue
 - **break**: 반복문 탈출
@@ -68,10 +68,10 @@ while 조건:
 - **pass**: 아무것도 하지 않음
     - **주로 코드 뼈대를 만들 때 사용**
     - **활용**: if문, 함수, 클래스 등
-    '''
+    ```
     if True:
         pass
-    '''
+    ```
 
 ---
 
@@ -94,13 +94,13 @@ while 조건:
 
 ### 3.3 딕셔너리
 - **기본형**: 
-'''
+```
 robot = {
     "name": "turtlebot",
     "battery": 90,
     "speed": 1.2
 }
-'''
+```
 - **길이**: len(robot)
 - **접근**:
     - **기본형**: robot[key]
@@ -136,11 +136,11 @@ robot = {
 
 ### 4.1 함수 정의
 - **기본형**:
-'''
+```
 def 함수명(매개변수1, 매개변수2, ...):
     statement
     return 반환값
-'''
+```
 - **특징**: 함수 안 변수는 밖에서 접근 불가능
 
 ### 4.2 매개변수
@@ -183,7 +183,7 @@ def 함수명(매개변수1, 매개변수2, ...):
 - **파일 닫기**: file.close()
 - **파일 읽기**: file.read()
 
-'''
+```
 with open("log.txt", "w") as file:
     file.write("로봇 시작\n")
 > 자동으로 close됨
@@ -194,7 +194,7 @@ with open("log.txt", "r") as file:
 
 with open("log.txt", "a") as file:
     file.write("새 로그 추가\n")
-'''
+```
  
 ---
 
@@ -209,21 +209,21 @@ with open("log.txt", "a") as file:
 
 ### 6.2 예외 처리
 - **try-except**:
-'''
+```
 try:
     위험할 수 있는 코드
 except:
     에러가 났을 때 실행할 코드
-'''
+```
     - **특정 예외 처리**:
-    '''
+    ```
     try:
         number = int("abc")
     except ValueError:
         print("정수를 입력해야 합니다.")
-    '''
+    ```
     - **여러 예외 처리**:
-    '''
+    ```
     try:
         x = int(input())
         y = 10 / x
@@ -231,47 +231,91 @@ except:
         print("숫자 입력해야 함")
     except ZeroDivisionError:
         print("0으로 나눌 수 없음")
-    '''
+    ```
     - **예외 객체 보기**:
-    '''
+    ```
     try:
         number = int("abc")
     except ValueError as e:
         print(e)
-    '''
+    ```
     - **else**: 에러가 없을 때만 실행
-    '''
+    ```
     try:
         number = int("abc")
     except ValueError as e:
         print(e)
     else:
         print("예외가 발생하지 않았습니다.")
-    '''
+    ```
     - **finally**: 에러 여부와 상관없이 항상 실행
         - **주로 파일 닫기, 연결 해제 등 마무리 작업에 사용**
-    '''
+    ```
     try:
         number = int("abc")
     except ValueError as e:
         print(e)
     finally:
         print("예외 발생 여부와 상관없이 항상 실행")
-    '''
+    ```
 
 ### 6.3 파일 처리와 예외 처리
-'''
+```
 try:
     with open("sensor.txt", "r") as file:
         data = file.read()
         print(data)
 except FileNotFoundError:
     print("파일이 존재하지 않습니다.")
-'''
+```
 
 ---
 
 ## 7. 클래스
+
+### 7.1 클래스 정의
+- **기본형**:
+```
+class 클래스이름:
+    def __init__(self, 매개변수1, 매개변수2, ...):
+        self.변수1 = 매개변수1
+        self.변수2 = 매개변수2
+        ...
+    > 초기화 함수: 객체가 생성될 때 자동 실행
+    > self: 자기 자신을 가리키는 변수
+    
+    def 메서드명(self, 매개변수1, 매개변수2, ...):
+        statement
+        return 반환값
+```
+
+### 7.2 객체
+- **객체와 인스턴스**: a = Cookie()
+    - **객체**: 그냥 만들어진 결과물 / a는 객체
+    - **인스턴스**: “어떤 클래스로부터 만들어졌는지”를 강조한 말 / a는 Cookie의 인스턴스
+- **생성**: 객체이름 = 클래스이름(인수1, 인수2, ...)
+- **접근**: 객체이름.변수명, 객체이름.메서드명()
+
+### 7.3 상속
+- 부모 클래스의 속성과 메서드를 자식 클래스가 물려받는 것
+- **활용**: 기존 클래스를 변경하지 않고 기능을 추가하거나 기존 기능을 변경하려고 할 때 사용
+    - 기존 클래스가 라이브러리 형태로 제공되거나 수정이 허용되지 않는 상황이라면 상속을 사용
+- **기본형**:
+```
+class 자식클래스_이름(부모클래스_이름):
+    def __init__(self, 매개변수1, 매개변수2, ...):
+        super().__init__(매개변수1, 매개변수2, ...)
+        self.변수1 = 매개변수1
+        self.변수2 = 매개변수2
+        ...
+    > super().__init__(): 부모 클래스의 초기화 함수를 호출
+    
+    def 메서드명(self, 매개변수1, 매개변수2, ...):
+        statement
+        return 반환값
+```
+
+---
 
 ## 8. ROS2 연결 맛보기
 
