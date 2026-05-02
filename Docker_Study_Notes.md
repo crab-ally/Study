@@ -56,9 +56,10 @@
 | 명령어 | 설명 |
 |---|---|
 | `docker stop <컨테이너명>` | 컨테이너 중지 |
-| `docker rm <컨테이너명>` | 컨테이너 삭제 |
+| `docker rm <컨테이너명>` | 중지된 컨테이너 삭제 |
+| `docker rm -f <컨테이너명>` | 컨테이너 강제 삭제 — 실행 여부 상관 없음|
 
-> **컨테이너 내부에서 종료하려면** `exit` 입력
+> **컨테이너 내부에서 종료하려면** `exit` 입력  
 > **컨테이너명은 중복 불가** — 동일한 이름으로 새 컨테이너를 생성하려면 기존 컨테이너를 먼저 삭제해야 함
 
 ---
@@ -92,17 +93,17 @@ docker run -d -p 8080:80 --name web nginx
 | 명령어 | 설명 |
 |---|---|
 | `docker logs <컨테이너명>` | 누적 로그 전체 출력 |
-| `docker logs -f <컨테이너명>` | 실시간 로그 스트리밍 (follow) |
+| `docker logs -f <컨테이너명>` | 실시간 로그 스트리밍 (종료 Ctrl + C) |
 | `docker logs --tail 100 <컨테이너명>` | 최근 100줄만 출력 |
 | `docker logs --since 10m <컨테이너명>` | 최근 10분 내 로그만 출력 |
 
 ### 3.4 컨테이너 상세 정보 (`docker inspect`)
 
 ```bash
-docker inspect <컨테이너명>
+docker inspect <컨테이너명> # JSON 형태
 ```
 
-전체 JSON 출력에서 핵심 항목만 필터링:
+- 전체 JSON 출력에서 핵심 항목만 필터링:
 
 | 명령어 | 확인 내용 |
 |---|---|
@@ -112,7 +113,7 @@ docker inspect <컨테이너명>
 
 ### 3.5 볼륨 마운트 (`-v`)
 
-컨테이너와 호스트 간에 디렉토리를 공유하여 컨테이너가 삭제되어도 데이터를 유지하는 기능.
+컨테이너와 호스트 간에 디렉토리를 공유하여 컨테이너가 삭제되어도 데이터를 유지하는 기능
 
 ```bash
 docker run -v <호스트경로>:<컨테이너경로> <이미지명>
@@ -160,7 +161,7 @@ services:
 | 키 | 의미 |
 | ---| --- |
 | `services` | 실행할 컨테이너(서비스) 목록 |
-| `ros2` | 서비스 이름 (임의 지정) |
+| `ros2/web` | 서비스 이름 (임의 지정) |
 | `image` | 사용할 Docker 이미지 (`osrf/ros:humble-desktop`) |
 | `container_name` | 컨테이너 이름을 직접 지정 |
 | `stdin_open` | 표준 입력(STDIN)을 열어둠 (`-i` 옵션과 동일) |
@@ -178,8 +179,8 @@ services:
 
 | 명령어 | 설명 |
 |---|---|
-| `docker compose up -d` | 모든 서비스를 백그라운드로 시작 |
-| `docker compose up --build -d` | 이미지를 새로 빌드 후 시작 |
+| `docker compose up` | 모든 서비스 시작 |
+| `docker compose up --build` | 이미지를 새로 빌드 후 시작 |
 | `docker compose build` | 실행 없이 이미지만 빌드 |
 
 **상태 확인**
@@ -188,7 +189,7 @@ services:
 |---|---|
 | `docker compose ps` | 서비스(컨테이너) 목록 및 상태 확인 |
 | `docker compose logs` | 전체 서비스 로그 출력 |
-| `docker compose logs -f` | 실시간 로그 스트리밍 |
+| `docker compose logs -f` | 실시간 로그 스트리밍 (종료 Ctrl + C) |
 | `docker compose logs -f <서비스명>` | 특정 서비스 로그만 실시간 확인 |
 
 **컨테이너 접속**
@@ -197,11 +198,13 @@ services:
 |---|---|
 | `docker compose exec <서비스명> bash` | 실행 중인 컨테이너에 접속 |
 
+> `docker compose exec`는 보통 이미 인터랙티브라서 `-it` 생략 가능
+
 **서비스 종료**
 
 | 명령어 | 설명 |
 |---|---|
-| `docker compose stop` | 컨테이너만 중지 (삭제하지 않음) |
+| `docker compose stop` | 컨테이너 중지 |
 | `docker compose down` | 컨테이너 중지 및 삭제 |
 | `docker compose down -v` | 컨테이너 + 연결된 볼륨까지 삭제 |
 | `docker compose down --rmi all` | 컨테이너 + 이미지까지 삭제 |
