@@ -58,9 +58,6 @@ def ensure_dir(path: str) -> None:
 
 > `os.mkdir`과의 차이: `makedirs`는 중간 경로도 한번에 생성합니다.
 
-```
-
-```python
 def main():
     print("=== OpenCV Docker Lab 실행 테스트 ===")
 
@@ -88,6 +85,8 @@ def main():
 
 - `shape`: (높이, 너비, 채널 수)
 - `dtype`: 데이터 타입. 0~255 범위의 8비트 정수 (픽셀 값에 사용)
+
+---
 
 ```python
     # 4. 이미지 위에 도형과 글자 그리기
@@ -135,6 +134,8 @@ def main():
 - `img`: 저장할 이미지 (NumPy 배열)
 - 반환값: 성공하면 `True`, 실패하면 `False`
 
+---
+
 ```python
     # 6. OpenCV로 이미지 다시 읽기
     loaded_image = cv2.imread(input_image_path)
@@ -156,6 +157,8 @@ def main():
     - `cv2.IMREAD_UNCHANGED` : `-1` :알파 채널 포함 (PNG 등)
 - 반환값: 실패하면 `None`
 
+---
+
 ```python
     # 7. 흑백 변환
     gray_image = cv2.cvtColor(loaded_image, cv2.COLOR_BGR2GRAY)
@@ -171,6 +174,8 @@ def main():
   - `cv2.COLOR_BGR2RGB` : BGR → RGB
   - `cv2.COLOR_BGR2HSV` : BGR → HSV
   - `cv2.COLOR_GRAY2BGR` : 흑백 → 컬러(3채널로 확장)
+
+---
 
 ```python
     # 8. 결과 저장
