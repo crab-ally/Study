@@ -142,7 +142,7 @@ def main():
     if loaded_image is None:
         raise FileNotFoundError(f"이미지를 읽을 수 없습니다: {input_image_path}")
 
-    print(f"이미지 읽기 성공: shape={loaded_image.shape}")
+    print(f"이미지 읽기 성공: shape={loaded_image.shape}")  # `.shape` : 이미지의 크기 (높이, 너비, 채널 수)를 반환
 ```
 
 | 함수 | 기능 |
@@ -155,8 +155,6 @@ def main():
     - `cv2.IMREAD_GRAYSCALE` : `0` : 흑백 이미지
     - `cv2.IMREAD_UNCHANGED` : `-1` :알파 채널 포함 (PNG 등)
 - 반환값: 실패하면 `None`
-
-- `.shape` : 이미지의 크기 (높이, 너비, 채널 수)를 반환
 
 ```python
     # 7. 흑백 변환
