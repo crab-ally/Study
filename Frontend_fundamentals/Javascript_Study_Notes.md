@@ -11,9 +11,6 @@
 | `+`, `,` | 문자열 더하기 |
 | `<br>` | 줄바꿈 |
 | `&nbsp` | 공백 |
-| `typeof` | 자료형 확인 |
-
-> 자료형 : String, **Number(정수, 실수)**, Boolean ...
 
 ### 1-2. 화면출력
 
@@ -30,6 +27,12 @@ let a = 10;
 let b;
 b = "Hello";
 ```
+
+> 자료형 : String, **Number(정수, 실수)**, Boolean ...  
+> `typeof` - 자료형 확인
+
+> [!Warning]  
+> 변수를 중괄호(`{}`) 안에서 선언하면, 해당 중괄호가 끝나는 시점에서 변수가 소멸됨
 
 ### 1-4 변수명명 규칙
 
@@ -51,6 +54,7 @@ b = "Hello";
 | `/` | 나누기 | 0으로 나누면 `Infinity` 반환 | | 
 | `parseInt(a/b)` | 나눗셈 몫 구하기 | 반환값 타입 - Number |
 | `%` | 나머지 | 0으로 나누면 `NaN` 반환 |
+| `Math.sqrt(제곱)` | 제곱근 | |
 
 ### 2-1. 할당 연산자
 
@@ -89,3 +93,182 @@ b = "Hello";
 ---
 
 ## 3. 비교연산자
+
+반환값: true/false
+
+| 연산자 | 내용 |
+| --- | --- |
+| `>` | 크다 |
+| `<` | 작다 |
+| `>=` | 크거나 같다 |
+| `<=` | 작거나 같다 |
+| `==` | 같다 |
+| `!=` | 같지 않다 |
+
+### 3-1. 논리연산자
+
+| 연산자 | 내용 | 특이사항 |
+| --- | --- | ---|
+| `&&` | 그리고 | 앞의 조건이 false이면 뒤의 조건은 실행되지 않음|
+| `||` | 또는 | 앞의 조건이 true이면 뒤의 조건은 실행되지 않음|
+| `!` | 부정 | |
+
+---
+
+## 4. 조건문
+
+### 4-1. If ~ Else 문
+
+```javascript
+if(조건식1) {
+    조건식1이 참(true)일 때 실행할 문장;
+} else if(조건식2) {
+    조건식1이 거짓(false)이고, 조건식2가 참(true)일 때 실행할 문장;  
+} else if(조건식3) {
+    조건식1,2가 거짓(false)이고, 조건식3이 참(true)일 때 실행할 문장;    
+} else {
+    모든 조건식이 거짓(false)일 때 실행할 문장;
+}
+```
+
+### 4-2. Switch ~ Case 문
+
+```javascript
+switch(변수) {
+    case 값1:
+        // 변수의 값이 값1과 같을 때 실행할 문장;
+        break;
+    case 값2:
+        // 변수의 값이 값2와 같을 때 실행할 문장;
+        break;
+    default:
+        // 변수의 값이 어떤 값과도 같지 않을 때 실행할 문장;
+        break;
+}
+```
+
+### 4-3. 삼항연산자
+
+```javascript
+조건식 ? 참일 때 실행할 문장 : 거짓일 때 실행할 문장;
+
+/* 중첩 */
+let c = r > 10 ? "r는 10보다 크다" : (r < 10 ?  "r은 10보다 작다" : "r은 10이다");
+```
+
+---
+
+## 5. 반복문
+
+### 5-1. While 문
+
+```javascript
+while (조건식) {
+    // 조건식이 참(true)인 동안 실행될 문장
+}
+```
+
+### 5-2. do ~ while 문
+
+```javascript
+do {
+    // 일단 한 번은 무조건 실행됨
+    // 조건식이 참(true)인 동안 실행될 문장
+} while(조건식);
+```
+
+> [!Warning]
+> do ~ while문 뒤에는 반드시 세미콜론(;)을 붙여야 합니다.
+
+### 5-3. for 문
+
+```javascript
+for (초기식; 조건식; 증감식) {
+    // 조건식이 참(true)인 동안 반복해서 실행할 문장
+}
+```
+
+> [!Warning]
+> `for (let i = 0; i < 10; i++)` - for문이 종료되면 i 변수는 소멸됨
+
+### 5-4. break, continue
+
+- `break` - 반복문을 즉시 탈출(종료)
+- `continue` - 현재 반복문의 나머지 코드를 건너뛰고, 다음 반복을 시작
+
+---
+
+## 6. 함수
+
+### 6-1. 함수 선언
+
+```javascript
+function 함수명(매개변수1, 매개변수2, ...) {
+    // 함수 본문
+    return 반환값;
+}
+```
+
+> [!Warning]
+> 함수는 값을 복사해서 전달받기 때문에 원본 데이터는 변경되지 않으며, 
+> 반환된 값(return값)을 새로운 변수에 할당해야 변경된 값을 사용할 수 있습니다.
+
+### 6-2. 함수 표현식
+
+Javascript는 함수를 값처럼 다룸
+
+```javascript
+const add = function(a, b) {
+    return a + b;
+};
+
+const hello = function () { // 익명 함수
+    console.log("hi");
+};
+
+hello(); // hi 출력
+```
+
+> [!Warning]
+> 함수 표현식은 선언 전에 호출 불가 (함수 호이스팅이 발생하지 않음)
+
+### 6-3. 화살표 함수
+
+함수 func는 arg1, arg2, ...argN 매개변수를 받아
+화살표(=>) 우측의 expression을 평가하고
+평가 결과를 반환합니다.
+
+```javascript
+/* 한 줄 표현식 */
+let func = (arg1, arg2, ...argN) => expression
+
+/* 여러 줄 표현식 */
+let func = (arg1, arg2, ...argN) => {
+    // 코드 작성
+    return 반환값;
+}
+```
+
+> 매개변수가 하나일 때는 소괄호 생략 가능  
+> 매개변수가 없으면 빈 소괄호 사용
+
+### 6-4. 매개변수
+
+매개변수에 값을 전달하지 않으면 `undefined`가 할당됨
+
+```javascript
+/* 매개변수에 기본값 설정 */
+function greet(name = "Guest") {
+    console.log(name);
+}
+const greet = function(name = "Guest") {
+    console.log(name);
+};
+const greet = (name = "Guest") => {
+    console.log(name);
+};
+
+greet(); // Guest
+```
+
+---
