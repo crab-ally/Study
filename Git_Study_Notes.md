@@ -53,7 +53,6 @@ git pull origin main    # 기존 폴더에 원격 가져오기
 ```bash
 git switch -c 브랜치명      # 생성 후 이동 (권장)
 git checkout -b 브랜치명    # 생성 후 이동 (구버전)
-git push -u origin 브랜치명 # 원격 브랜치 생성
 ```
 
 ### 확인
@@ -71,6 +70,12 @@ git switch main             # main으로 이동
 git pull origin main        # main 최신화
 git merge 브랜치명          # 브랜치 내용 병합
 git push origin main        # GitHub에 반영
+```
+
+### 원격 브랜치 생성 및 push
+
+```bash
+git push -u origin 브랜치명 # 원격 브랜치 생성
 ```
 
 ### 삭제
