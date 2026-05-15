@@ -192,24 +192,6 @@ for (std::size_t i : batterys) { // 벡터 순회
 }
 ```
 
----
-
-## 5. 배열
-
-```cpp
-#include <vector>
-
-int battery[4] = {1,2,3,4}; // 크기 고정
-std::vector<int> batterys = {1,2,3,4}; // 크기 가변
-
-batterys.size(); // 벡터 크기 반환
-batterys.push_back(5); // 벡터에 값 추가
-
-for (std::size_t i : batterys) { // 벡터 순회
-  std::cout << i << std::endl;
-}
-```
-
 > `std::size_t`는 부호없는 정수형으로 벡터의 크기를 나타낼 때 사용한다.
 
 ---
@@ -448,6 +430,13 @@ public:
     {
     }
 
+    /* 소멸자: 객체가 소멸될 때 자동으로 호출되는 함수
+       - 객체 소멸: 스코프 종료 / delete
+     */
+    ~Robot() {
+        std::cout << name_ << " 소멸\n";
+    }
+
     /* const 멤버 함수: 읽기 전용 함수
      */
     int get_battery() const {
@@ -460,6 +449,8 @@ private:
     double speed_;
 };
 ```
+
+> 객체는 스택(LIFO)에 생성되므로 객체 생성 역순으로 소멸됨
 
 #### 상속
 
@@ -562,12 +553,23 @@ public:
     virtual void move() {
         std::cout << "Robot moves." << std::endl;
     }
+
+    /* 다형성 사용 시 부모 클래스의 소멸자 앞에 virtual을 붙여야 함
+        - virtual이 없으면: 부모 소멸자만 호출 → 메모리 누수 발생 가능
+    */
+    virtual ~Robot() {
+        std::cout << "Robot destroyed" << std::endl;
+    }
 };
 
 class MobileRobot : public Robot {
 public:
     void move() override {
         std::cout << "Mobile robot drives." << std::endl;
+    }
+
+    ~MobileRobot() {
+        std::cout << "MobileRobot destroyed" << std::endl;
     }
 };
 
@@ -576,21 +578,89 @@ public:
     void move() override {
         std::cout << "Robot arm rotates." << std::endl;
     }
+
+    ~RobotArm() {
+        std::cout << "RobotArm destroyed" << std::endl;
+    }
 };
 
 int main() {
-    MobileRobot mobile_robot;
-    RobotArm robot_arm;
-
     std::vector<Robot*> robots;
 
-    robots.push_back(&mobile_robot);
-    robots.push_back(&robot_arm);
+    robots.push_back(new MobileRobot());
+    robots.push_back(new RobotArm());
 
     for (Robot* robot : robots) {
-        robot->move();  // 객체에 따라 다르게 동작
+        robot->move();
+    }
+
+    for (Robot* robot : robots) {
+        delete robot;   // MobileRobot destroyed → Robot destroyed, RobotArm destroyed → Robot destroyed
     }
 
     return 0;
 }
 ```
+
+---
+
+## 8. 헤더파일(.hpp)
+
+헤더파일은 보통 선언을 담는다
+
+```cpp
+/* include guard: 헤더파일이 중복include되는 것을 방지 */
+
+/* 방법1 */
+#ifndef ROBOT_STATUS_HPP   // ROBOT_STATUS_HPP가 정의되지 않았다면
+#define ROBOT_STATUS_HPP   // ROBOT_STATUS_HPP를 정의
+
+/* 방법2 */
+#pragma once
+
+/* =============================================== */
+
+#include <string>
+
+class RobotStatus {
+public:
+    RobotStatus(const std::string& name, int battery, double speed);
+
+    void print() const;
+
+private:
+    std::string name_;
+    int battery_;
+    double speed_;
+};
+
+#endif  // #ifndef의 끝을 의미
+
+/* ==================== 소스파일(.cpp) ==================== */
+
+#include "robot_status.hpp"
+
+#include <iostream>
+
+// 헤더 파일에 선언된 클래스의 함수를 .cpp 파일에서 구현(정의)하는 것
+RobotStatus::RobotStatus(const std::string& name, int battery, double speed)
+    : name_(name),
+      battery_(battery),
+      speed_(speed)
+{
+}
+void RobotStatus::print() const {
+    std::cout << "===== Robot Status =====" << std::endl;
+    std::cout << "Name: " << name_ << std::endl;
+    std::cout << "Battery: " << battery_ << "%" << std::endl;
+    std::cout << "Speed: " << speed_ << " m/s" << std::endl;
+}
+```
+
+### 8-1. 오류
+
+| 종류 | 설명 | 원인 |
+|---|---|---|
+| 컴파일 오류 | 컴파일 단계에서 발생하는 오류 | 문법 오류, 헤더 파일 누락 등 |
+| 링커 오류 | 링크 단계에서 발생하는 오류 | 함수나 변수가 선언되었지만 구현되지 않은 경우 |
+| 런타임 오류 | 프로그램 실행 중에 발생하는 오류 | 잘못된 메모리 접근, 0으로 나누기 등 |

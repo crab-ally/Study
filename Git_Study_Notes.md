@@ -35,15 +35,14 @@ git push -u origin main     # 원격 저장소에 업로드
 ## GitHub에서 가져오기
 
 ```bash
-git clone 원격저장소주소    # 빈 폴더에 원격 저장소 복제
+git clone 원격저장소주소    # 새 폴더 생성 및 그 안에 원격 저장소 복제
+git clone 원격저장소주소 .  # 현재 폴더에 원격 저장소 복제 (폴더가 비어있어야 함)
 
 # pull = fetch + merge
 # 1. fetch  → 원격 최신 정보 가져오기
 # 2. merge  → 변경사항 병합
 git pull origin main    # 기존 폴더에 원격 가져오기
 ```
-
-> **참고** `git clone`은 폴더가 완전히 비어 있어야 합니다 (`.git` 포함).
 
 ---
 
