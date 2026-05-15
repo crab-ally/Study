@@ -50,6 +50,12 @@ else:
     statement
 ```
 
+#### 삼항 연산자
+
+```python
+A if 조건 else B    # 조건이 참이면 A 거짓이면 B
+```
+
 ### 2.2 반복문
 
 #### for 문
