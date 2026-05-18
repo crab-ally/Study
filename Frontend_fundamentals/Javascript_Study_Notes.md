@@ -291,8 +291,8 @@ greet(); // Guest
 ```javascript
 /* 객체 선언 */
 let user = {
-  name: "John",  // 프로퍼티(property) - name: "John", age: 30, "likes birds": true
-  age: 30,       // 키: "name", "age", "likes birds"   값: "John", 30, true
+  name: "John",  // 프로퍼티(property)
+  age: 30,       // 키(key):값(value)
   "likes birds": true // 프로퍼티 이름에 공백이 있을 경우 따옴표로 묶어줘야 한다.
 };
 
