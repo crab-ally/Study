@@ -26,6 +26,8 @@
 let a = 10;
 let b;
 b = "Hello";
+
+const c = 10;   // 값을 다시 대입할 수 없는 변수 선언
 ```
 
 > 자료형 : String, **Number(정수, 실수)**, Boolean ...  
@@ -41,6 +43,17 @@ b = "Hello";
 - 숫자로 시작 불가
 - 특수문자는 `_`, `$` 만 가능
 - 예약어(키워드) 사용불가
+
+### 1-5. 모달창(modal window)
+
+현재 작업을 멈추고 사용자 응답을 강제로 받는 창
+
+| 함수 | 기능 | 반환값 |
+| --- | --- | --- |
+| `alert(문자열)` | 경고창을 띄움 | undefined |
+| `confirm(문자열)` | 확인/취소 선택창을 띄움 | true/false |
+| `prompt(문자열)` | 텍스트 입력창을 띄움 | 입력값 (문자열) |
+
 
 ---
 
@@ -92,9 +105,7 @@ b = "Hello";
 
 ---
 
-## 3. 비교연산자
-
-반환값: true/false
+## 3. 비교연산자 (반환값: true/false)
 
 | 연산자 | 내용 |
 | --- | --- |
@@ -104,13 +115,15 @@ b = "Hello";
 | `<=` | 작거나 같다 |
 | `==` | 같다 |
 | `!=` | 같지 않다 |
+| `===` | 같다 (타입까지) |
+| `!==` | 같지 않다 (타입까지) |
 
 ### 3-1. 논리연산자
 
 | 연산자 | 내용 | 특이사항 |
 | --- | --- | ---|
-| `&&` | 그리고 | 앞의 조건이 false이면 뒤의 조건은 실행되지 않음|
-| `||` | 또는 | 앞의 조건이 true이면 뒤의 조건은 실행되지 않음|
+| `&&` | 그리고 | 앞의 조건이 false이면 뒤의 조건은 실행되지 않음 |
+| `\|\|` | 또는 | 앞의 조건이 true이면 뒤의 조건은 실행되지 않음 |
 | `!` | 부정 | |
 
 ---
@@ -216,7 +229,7 @@ function 함수명(매개변수1, 매개변수2, ...) {
 ```
 
 > [!Warning]
-> 함수는 값을 복사해서 전달받기 때문에 원본 데이터는 변경되지 않으며, 
+> 함수는 값을 복사해서 전달받기 때문에 원본 데이터는 변경되지 않으며,  
 > 반환된 값(return값)을 새로운 변수에 할당해야 변경된 값을 사용할 수 있습니다.
 
 ### 6-2. 함수 표현식
@@ -224,11 +237,11 @@ function 함수명(매개변수1, 매개변수2, ...) {
 Javascript는 함수를 값처럼 다룸
 
 ```javascript
-const add = function(a, b) {
+const add = function(a, b) {    // 익명 함수
     return a + b;
 };
 
-const hello = function () { // 익명 함수
+const hello = function () {     // 익명 함수
     console.log("hi");
 };
 
@@ -276,5 +289,185 @@ const greet = (name = "Guest") => {
 
 greet(); // Guest
 ```
+
+---
+
+## 7. 객체
+
+```javascript
+/* 객체 선언 */
+let user = {
+  name: "John",  // 프로퍼티(property)
+  age: 30,       // 키(key):값(value)
+  "likes birds": true // 프로퍼티 이름에 공백이 있을 경우 따옴표로 묶어줘야 한다.
+};
+
+/* 단축 프로퍼티: 기존 변수 값을 가져와 넣는 문법 */
+const name = "John";
+const age = 30;
+
+const user = {
+  name,     // name: name 과 같음 -> name: "John"
+  age       // age: age 와 같음 -> age: 30
+};
+```
+
+> 프로퍼티 이름에 공백이 있을 경우 대괄호 표기법을 사용해야 한다.
+
+### 7-1. 객체 값 접근
+
+```javascript
+/* 점 표기법 */
+console.log(user.name); // John
+
+/* 대괄호 표기법 */
+console.log(user["age"]); // 30
+
+/* 변수를 이용한 접근: 대괄호 표기법만 가능 */
+let prop = "name";
+console.log(user[prop]); // John
+```
+
+### 7-2. 프로퍼티 추가 및 삭제
+
+```javascript
+// 프로퍼티 추가
+user.isAdmin = true;
+user["isAdmin"] = true;
+
+// 프로퍼티 삭제
+delete user.age;
+delete user["age"];
+```
+
+### 7-3. 프로퍼티 존재 여부 확인
+
+존재하지 않는 프로퍼티에 접근하려 해도 에러가 발생하지 않고 undefined를 반환
+
+```javascript
+"key" in object     // true/false 반환
+
+/* 프로퍼티 전체를 반복할 때 */
+for (let key in object) {
+    console.log(key);    // 프로퍼티 이름 출력
+    console.log(object[key]); // 프로퍼티 값 출력
+}
+```
+
+### 7-4. 객체 참조
+
+객체가 할당된 변수를 복사하면 동일한 객체에 대한 참조 값이 하나 더 만들어진다
+
+```javascript
+let user = { name: 'John' };
+
+let admin = user;
+
+admin.name = 'Pete'; // 'admin' 참조 값에 의해 변경됨
+
+alert(user.name); // 'Pete'가 출력됨. 'user' 참조 값을 이용해 변경사항을 확인함
+```
+
+### 7-5. 메서드와 this
+
+```javascript
+/* 메서드: 객체 프로퍼티에 할당된 함수 */
+user = {
+    name: "John",
+    age: 30,
+    sayHi: function() {
+        alert(this.name);   // this: 현재 메서드를 호출한 객체
+    }
+};
+
+/* 메서드 단축 문법 */
+user = {
+    name: "John",
+    age: 30,
+
+    sayHi() {
+        alert(this.name);
+    }
+};
+
+/* 메서드 할당 */
+user.sayHi = function() {
+  alert(this.name);
+};
+
+user.sayHi(); // John
+```
+
+> [!Warning]
+> 화살표 함수에서 this는 바깥쪽 스코프의 this 값을 그대로 가져옴 (고유한 의미 없음)
+
+---
+
+## 8. 클래스
+
+```javascript
+class User {
+    // 필드
+    age = 20; 
+
+    // 생성자 메서드
+    constructor(name) {   
+        this.name = name;
+    }
+
+    // 메서드
+    sayHi() {
+        alert(this.name);
+    }
+}
+
+// 사용
+let user = new User("John");
+user.sayHi();
+```
+
+### 8-1. 상속
+
+```javascript
+class Animal {
+  constructor(name) {
+    this.speed = 0;
+    this.name = name;
+  }
+  run(speed) {
+    this.speed = speed;
+    alert(`${this.name}가 속도 ${this.speed}로 달립니다.`);
+  }
+  stop() {
+    this.speed = 0;
+    alert(`${this.name}가 멈췄습니다.`);
+  }
+}
+
+class Rabbit extends Animal {
+  constructor(name, earLength) {
+    super(name);
+    this.earLength = earLength;
+  }
+  hide() {
+    alert(`${this.name}가 숨었습니다!`);
+  }
+  /* 메서드 오버라이딩 */
+  stop() {
+    super.stop(); // 부모 클래스의 stop을 호출해 멈추고,
+    this.hide(); // 숨습니다.
+  }
+}
+
+let rabbit = new Rabbit("흰 토끼", 10);
+alert(rabbit.name); // 흰 토끼
+alert(rabbit.earLength); // 10
+
+rabbit.run(5); // 흰 토끼가 속도 5로 달립니다.
+rabbit.stop(); // 흰 토끼가 멈췄습니다. 흰 토끼가 숨었습니다!
+```
+
+> [!Warning]
+> 화살표 함수는 super 키워드를 사용할 수 없다.
 
 ---
