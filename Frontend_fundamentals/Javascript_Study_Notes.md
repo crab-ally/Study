@@ -30,7 +30,7 @@ b = "Hello";
 const c = 10;   // 값을 다시 대입할 수 없는 변수 선언
 ```
 
-> 자료형 : String, **Number(정수, 실수)**, Boolean ...  
+> 자료형 : String, Number(정수, 실수), Boolean ...  
 > `typeof` - 자료형 확인
 
 > [!Warning]  
@@ -206,9 +206,6 @@ for (const 변수 of 배열) {
     실행코드
 }
 ```
-
-> [!Warning]
-> `for (let i = 0; i < 10; i++)` - for문이 종료되면 i 변수는 소멸됨
 
 ### 5-4. break, continue
 
@@ -471,3 +468,24 @@ rabbit.stop(); // 흰 토끼가 멈췄습니다. 흰 토끼가 숨었습니다!
 > 화살표 함수는 super 키워드를 사용할 수 없다.
 
 ---
+
+## 9. 배열
+
+| 함수 | 설명 |
+| --- | --- |
+| `array.filter(조건)`| 배열을 순회하며, 조건에 맞는 요소만 모아 새로운 배열 반환 |
+| `array.forEach(함수)`| 배열을 순회하며, 각 요소를 함수 작업 수행 |
+
+```javascript
+/* filter */
+const nums = [1, 2, 3, 4, 5];
+const result = nums.filter(n => n % 2 === 0);
+console.log(result); // [2, 4]
+
+
+/* forEach */
+const nums = [1, 2, 3];
+nums.forEach(n => {
+    console.log(n);
+});
+```
