@@ -6,8 +6,9 @@
 fn main() {
     // 불변 변수 — 선언 후 재할당 불가
     let x = 10;
-    let y = "hello";                // &str 타입 (문자열 참조)
-    let z = String::from("hello");  // String 타입 (문자열 소유)
+    let y = "hello";                    // &str 타입 (문자열 참조)
+    let z = String::from("hello");      // String 타입 (문자열 소유)
+    let s1 = format!("{} world", z);    // hello world 문자열 만들어 변수에 저장 (String 타입)
 
     // 가변 변수 — mut 키워드로 재할당 허용
     let mut h = 20;
@@ -44,6 +45,26 @@ fn main() {
 
 ---
 
+## 타입 변환
+
+```rust
+// as — 숫자 변환 (정수/실수/문자)
+let a: i32 = 10;
+let b = a as f64;
+
+// parse() — 문자열 -> 숫자
+let s = "10";
+let n = s.parse::<i32>().unwrap();
+
+// to_string() — 숫자 -> 문자열
+let n = 10;
+let s = n.to_string();
+```
+
+> 문자 <-> 숫자 변환은 ASCII 코드 기준
+
+---
+
 ## Shadowing
 
 같은 이름으로 변수를 **재선언**해 이전 값을 덮어쓰는 기능.  
@@ -71,8 +92,12 @@ fn main() {
 소유권이 이동(move)하면 이전 변수는 더 이상 사용할 수 없다.
 
 ```rust
+fn print_string(s: String) {
+    println!("{}", s);
+}
+
 fn main() {
-    // string 타입 — heap 데이터
+    // string 타입 — heap 데이터 (Copy 불가)
     let name = String::from("robot");
     let name2 = name;           // move — name의 소유권이 name2로 이동
     let name3 = name2.clone();  // clone — 값을 복사해 새 소유권 생성
@@ -89,8 +114,16 @@ fn main() {
     println!("{}", name);  // ❌ 컴파일 에러 — 소유권 없음
     println!("{}", name2); // ✅ 정상
     println!("{}", name3); // ✅ 정상
+
+    print_string(name3);    // 함수로 소유권 이동
+    print_string(&name2);   // 함수로 참조 전달
+    println!("{}", name3);  // ❌ 에러
+    println!("{}", name2);  // ✅ 정상
 }
 ```
+
+> Stack: 작고 크기가 정해진 값 저장(정수, 실수, 불린형 등)  
+> Heap: 실행 중에 크기가 달라질 수 있는 데이터 저장(문자열 등)
 
 ---
 
@@ -99,26 +132,46 @@ fn main() {
 소유권을 넘기지 않고 값을 **빌려서** 사용하는 방식.
 
 ```rust
+fn change(s: &mut String) { // 변경 가능한 참조
+    s.push_str(" world");
+}
+fn print_distances(distances: &[f64]) { // 배열 참조
+    for (index, distance) in distances.iter().enumerate() {
+        println!("{}번 거리값: {} m", index, distance);
+    }
+}
+fn sanitize_distances(distances: &mut [f64]) {  // 배열 변경 가능한 참조
+    // iter_mut() — 변경 가능한 참조를 반환
+    for distance in distances.iter_mut() {  
+        if *distance < 0.0 {
+            *distance = 0.0;
+        }
+    }
+}
+
 fn main() {
     let mut s = String::from("hello");
+    let lidar_ranges = [1.2, 0.9, 0.45, 2.0, 0.6];
+    let mut lidar_ranges = [1.2, -1.0, 0.45, 2.0, -0.5];
+
+    print_distances(&lidar_ranges);
+    sanitize_distances(&mut lidar_ranges);
 
     // 한 번에 하나의 mutable reference만 가능
     let r1 = &mut s;
     let r2 = &mut s; // ❌ 오류
 
-    // mutable과 immutable reference 동시에 불가
-    let r1 = &s;      // immutable
+    /* mutable과 immutable reference 동시에 불가
+     * (immutable 참조 사용이 끝나면 mutable 참조 가능)
+     */
+    let r1 = &s;
     let r2 = &mut s;  // ❌ 오류
 
     change(&mut s);
     println!("{}", s);  // hello world
 }
 
-fn change(s: &mut String) {
-    s.push_str(" world");
-}
-
-// dangling reference — 컴파일 에러
+// dangling reference: 이미 사라진 데이터를 가리키는 참조
 fn dangle() -> &String {
     let s = String::from("hello");
     &s  // ❌ s가 함수 종료 시 사라짐
@@ -127,9 +180,96 @@ fn dangle() -> &String {
 // 올바른 방식 — 소유권 반환
 fn no_dangle() -> String {
     let s = String::from("hello");
-    s // ✅ 소유권 이동
+    s // ✅ 받은 소유권 다시 반환 
 }
 
+// &str 반환
+fn get_default_status() -> &'static str {
+    "READY"
+}
+
+```
+
+> 함수 매개변수 `&str` — String도 받을 수 있고, 문자열 리터럴(&str)도 받을 수 있다.
+
+---
+
+## 조건문
+
+```rust
+if 조건 {
+    실행
+} else if 조건 {
+    실행
+} else {
+    실행
+}
+```
+
+---
+
+## 반복문
+
+### loop — 무한 반복
+
+```rust
+fn main() {
+    let mut count = 0;
+
+    loop {
+        count += 1;
+        println!("{}", count);
+
+        if count == 5 {
+            break;
+        }
+    }
+}
+```
+
+### while
+
+```rust
+fn main() {
+    let mut battery = 100;
+
+    while battery > 0 {
+        println!("배터리: {}", battery);
+        battery -= 20;
+    }
+}
+```
+
+### for
+
+```rust
+fn main() {
+
+    let distances = [1.2, 0.9, 0.45, 2.0, 0.6];
+
+    /* iter() — 벡터를 참조로 순회
+     * enumerate() — 인덱스와 값을 함께 반환
+     */
+    for (index, distance) in distances.iter().enumerate() {
+        println!("{}번 센서값: {} m", index, distance); // println!이 참조를 자동 처리
+    }
+
+    for (index, distance) in distances.iter().enumerate() {
+        if is_dangerous_distance(*distance) {   // 함수에는 역참조 사용
+            println!("{}번 값 위험: {} m", index, distance);
+        } else {
+            println!("{}번 값 안전: {} m", index, distance);
+        }
+    }
+
+    for i in 0..5 { // 0부터 4까지 반복
+        println!("i = {}", i);
+    }
+
+    for i in 0..=5 { // 0부터 5까지 반복
+        println!("i = {}", i);
+    }
+}
 ```
 
 ---
@@ -170,8 +310,20 @@ struct User {
 
 // impl — 구조체에 메서드를 추가하는 문법
 impl User {
-    fn introduce(&self) {
+    // 생성자
+    fn new(name: String, age: u32) -> User {
+        User {
+            name,
+            age,
+        }
+    }
+    // 읽기 전용
+    fn introduce(&self) {   
         println!("안녕하세요, 저는 {}입니다", self.name);
+    }
+    // 변경 가능
+    fn change_name(&mut self, new_name: String) {
+        self.name = new_name;
     }
 }
 
@@ -180,6 +332,7 @@ fn main() {
         name: String::from("Lee"),
         age: 25,
     };
+    let user1 = User::new(String::from("Kim"), 30);
 
     user.introduce();
 }
@@ -208,7 +361,7 @@ fn main() {
 
 ---
 
-## Option
+### Option
 
 값의 **존재 또는 부재**를 표현하는 enum.  
 Rust에는 `null`이 없으며, 대신 `Option`을 사용한다.
@@ -218,28 +371,49 @@ enum Option<T> {
     Some(T), // 값이 있음
     None,    // 값이 없음
 }
+```
+
+```rust
+fn find_first_dangerous_distance(ranges: &[f64]) -> Option<f64> {
+    for distance in ranges {
+        if *distance < 0.7 {
+            return Some(*distance);
+        }
+    }
+    None
+}
 
 fn main() {
-    let value = Some(10);
-    let nothing: Option<i32> = None;
+    let lidar_ranges = [1.2, 0.9, 0.45, 2.0];
 
-    match value {
-        Some(v) => println!("값이 있습니다: {}", v),
-        None => println!("값이 없습니다"),
+    let result = find_first_dangerous_distance(&lidar_ranges);
+
+    // match — 모든 경우를 다루어야 함
+    match result {
+        Some(distance) => println!("첫 번째 위험 거리: {} m", distance),
+        None => println!("위험 거리 없음"),
+    }
+    // if let ~ else
+    if let Some(distance) = result {
+        println!("감지된 위험 거리: {} m", distance);
+    } else {
+        println!("위험 거리 없음");
     }
 }
 ```
 
 ---
 
-## 에러처리 (Result)
+### 에러처리 (Result)
 
 ```rust
 enum Result<T, E> {
-    Ok(T),      // 성공
-    Err(E),     // 실패
+    Ok(T),      // 성공, 결과값 있음
+    Err(E),     // 실패, 오류정보 있음
 }
+```
 
+```rust
 fn divide(a: i32, b: i32) -> Result<i32, String> {
     if b == 0 {
         Err(String::from("0으로 나눌 수 없음"))
@@ -277,7 +451,7 @@ fn main() {
 
 ### Vector (Vec)
 
-리스트(배열처럼 사용)
+동적 배열
 
 ```rust
 // 생성
@@ -299,8 +473,6 @@ match v.get(10) {
 }
 
 // 참조 반복문 — 값 수정
-let mut v = vec![1, 2, 3];
-
 for i in &mut v {
     *i += 10;
 }
@@ -353,6 +525,10 @@ fn main() {
         *count.entry(word).or_insert(0) += 1;
     }
 
+    /* {:?} : 디버그 출력 — Vec, 구조체(struct), enum 같은 타입들 출력 가능
+     * vec는 #[derive(Debug)] 필요 없음
+     * struct와 enum은 #[derive(Debug)] 필요
+     */
     println!("{:?}", count); // {"apple": 2, "banana": 2, "orange": 1}
 }
 ```
@@ -416,6 +592,63 @@ fn main() {
 
 ---
 
+## 모듈 (mod)
+
+코드를 나누는 단위
+
+```
+src/
+ ├── main.rs
+ └── robot/
+     ├── mod.rs
+     ├── sensor.rs
+     └── control.rs
+```
+
+```rust
+/* ============= robot.rs ================= */
+// pub mod — main.rs에서 접근 가능하게
+pub mod sensor;
+pub mod control;
+
+// pub — 외부에서 접근 가능
+pub fn say_hello() {
+    println!("로봇 시작");
+}
+
+/* ============= main.rs ================= */
+mod robot;
+use robot::say_hello;
+use robot::sensor::read_sensor;
+use robot::control::decide;
+
+fn main() {
+    robot::say_hello(); // 모듈 이름으로 접근
+    say_hello();        // use로 가져와서 바로 접근
+}
+```
+
+---
+
+## 파일
+
+```rust
+use std::fs;
+use std::io::Write; // write_all() 메서드를 쓰기 위해 필요
+
+fn main() {
+    // 파일 쓰기
+    let mut file = fs::File::create("output.txt").expect("파일 생성 실패");
+    file.write_all(b"Hello, Rust!").expect("파일 쓰기 실패");
+
+    // 파일 읽기
+    let contents = fs::read_to_string("output.txt").expect("파일 읽기 실패");
+    println!("{}", contents);
+}
+```
+
+---
+
 ## 실행 — Cargo
 
 Cargo는 Rust의 공식 빌드 시스템 겸 패키지 매니저다.
@@ -459,7 +692,7 @@ my_project/
 
 ```
 my_project/
-└── target/
+└── target/                 # 빌드 결과물 저장
     └── release/
         └── my_project      # 최적화된 실행 파일
 ```
