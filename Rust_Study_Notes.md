@@ -52,7 +52,7 @@ fn main() {
 let a: i32 = 10;
 let b = a as f64;
 
-// parse() — 문자열 -> 숫자
+// parse() — 문자열 -> 숫자 [반환값 : Result<i32, ParseIntError>]
 let s = "10";
 let n = s.parse::<i32>().unwrap();
 
@@ -452,6 +452,7 @@ fn main() {
 ### Vector (Vec)
 
 동적 배열
+- 같은 타입만 저장 가능
 
 ```rust
 // 생성
@@ -466,8 +467,8 @@ v1.push(20);
 println!("{}", v[0]);	// 1
 println!("{}", v[10]);	// 💥 panic
 
-// 안전한 접근 — .get()
-match v.get(10) {
+// 안전한 접근 — .get(index)
+match v.get(2) {
     Some(value) => println!("{}", value),
     None => println!("없음"),
 }
@@ -478,9 +479,61 @@ for i in &mut v {
 }
 ```
 
+```rust
+#[derive(Debug)]
+struct MotorStatus {
+    id: u32,
+    speed: f64,
+    temperature: f64,
+}
+
+fn main() {
+    // 구조체 목록 저장
+    let mut motors: Vec<MotorStatus> = Vec::new();
+
+    motors.push(MotorStatus {
+        id: 1,
+        speed: 1.2,
+        temperature: 45.0,
+    });
+
+    motors.push(MotorStatus {
+        id: 2,
+        speed: 0.8,
+        temperature: 52.0,
+    });
+
+    motors.push(MotorStatus {
+        id: 3,
+        speed: 0.0,
+        temperature: 38.0,
+    });
+
+    for motor in motors.iter() {
+        println!("{:?}", motor);
+    }
+}
+```
+
+```rust
+fn main() {
+    // 문자열 저장
+    let mut logs: Vec<String> = Vec::new();
+
+    logs.push(String::from("[INFO] Robot initialized"));
+    logs.push(String::from("[INFO] Sensor connected"));
+    logs.push(String::from("[WARNING] Obstacle detected"));
+
+    for log in logs.iter() {
+        println!("{}", log);
+    }
+}
+```
+
 ### Hash Map
 
 키-값 저장소
+- HashMap은 순서를 보장하지 않는다
 
 ```rust
 use std::collections::HashMap;
@@ -490,12 +543,15 @@ let mut map = HashMap::new();
 map.insert("name", "Kim");
 map.insert("age", "30");
 
+// 값 수정
+map.insert("name", "Lee");
+
 // ownership 주의
 let key = String::from("name");
 map.insert(key, String::from("Kim"));
 // key ❌ 사용 불가 (move 발생)
 
-// 값 가져오기 — .get()
+// 값 가져오기 — .get(key) [반환값 : Option<&String>]
 match map.get("name") {
     Some(v) => println!("{}", v),
     None => println!("없음"),
@@ -600,10 +656,13 @@ fn main() {
 src/
  ├── main.rs
  └── robot/
-     ├── mod.rs
+     ├── robot.rs
      ├── sensor.rs
      └── control.rs
 ```
+
+> rs 파일이 같은 폴더에 있을 경우 각각 mod  
+> 폴더 계층 구조를 가지고 있으면 하나의 rs 파일에 pub mod
 
 ```rust
 /* ============= robot.rs ================= */
@@ -614,6 +673,15 @@ pub mod control;
 // pub — 외부에서 접근 가능
 pub fn say_hello() {
     println!("로봇 시작");
+}
+
+// pub 필드 — pub struct 안의 필드와 메서드도 pub으로 선언해야 외부에서 접근 가능
+#[derive(Debug)]
+pub struct RobotConfig {
+    pub robot_name: String,
+    pub max_speed: f64,
+    pub safety_distance: f64,
+    pub battery_warning_level: u32,
 }
 
 /* ============= main.rs ================= */
@@ -630,20 +698,456 @@ fn main() {
 
 ---
 
+## Trait
+
+공통 기능 이름을 약속하는 것
+
+```rust
+trait DeviceInfo {
+    fn device_name(&self) -> String;
+    fn is_healthy(&self) -> bool;
+}
+
+trait StatusReport {
+    fn device_name(&self) -> String;
+
+    // Default Implementation
+    fn status_report(&self) {
+        println!("장치 이름: {}", self.device_name());
+        println!("기본 상태 보고서입니다.");
+    }
+}
+
+struct LidarSensor {
+    name: String,
+    distance: f64,
+}
+
+struct Motor {
+    id: u32,
+    speed: f64,
+    temperature: f64,
+}
+
+impl StatusReport for LidarSensor {
+    fn device_name(&self) -> String {
+        self.name.clone()
+    }
+
+    // Default Implementation 재정의
+    fn status_report(&self) {
+        println!("--- LiDAR Status Report ---");
+        println!("센서 이름: {}", self.name);
+        println!("측정 거리: {} m", self.distance);
+    }
+}
+
+impl DeviceInfo for LidarSensor {
+    fn device_name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn is_healthy(&self) -> bool {
+        self.distance >= 0.0
+    }
+}
+
+impl StatusReport for Motor {
+    fn status_report(&self) {
+        println!("--- Motor Status Report ---");
+        println!("모터 ID: {}", self.id);
+        println!("속도: {} m/s", self.speed);
+        println!("온도: {} C", self.temperature);
+    }
+}
+
+impl DeviceInfo for Motor {
+    fn device_name(&self) -> String {
+        format!("motor_{}", self.id)
+    }
+
+    fn is_healthy(&self) -> bool {
+        self.temperature <= 80.0
+    }
+}
+
+fn main() {
+    let lidar = LidarSensor {
+        name: String::from("front_lidar"),
+        distance: 0.45,
+    };
+
+    let motor = Motor {
+        id: 1,
+        speed: 1.2,
+        temperature: 65.0,
+    };
+
+    // trait을 사용하면 같은 이름의 메서드를 호출할 수 있다.
+    lidar.status_report();
+    motor.status_report();
+
+    println!("장치 이름: {}", lidar.device_name());
+    println!("정상 여부: {}", lidar.is_healthy());
+
+    println!("장치 이름: {}", motor.device_name());
+    println!("정상 여부: {}", motor.is_healthy());
+}
+```
+
+---
+
+## Generic
+
+타입을 고정하지 않고 코드를 재사용하는 문법
+
+```rust
+use std::fmt::Display;
+
+fn print_value<T: Display>(value: T) {  // T 타입은 출력 가능한 타입만 허용 (Trait bound)
+    println!("{}", value);
+}
+
+fn main() {
+    print_value(10);
+    print_value(3.14);
+    print_value("robot");
+}
+```
+
+```rust
+trait StatusReport {
+    fn status_report(&self);
+}
+
+struct LidarSensor {
+    name: String,
+    distance: f64,
+}
+
+struct Motor {
+    id: u32,
+    speed: f64,
+}
+
+impl StatusReport for LidarSensor {
+    fn status_report(&self) {
+        println!("LiDAR {} 거리: {} m", self.name, self.distance);
+    }
+}
+
+impl StatusReport for Motor {
+    fn status_report(&self) {
+        println!("Motor {} 속도: {} m/s", self.id, self.speed);
+    }
+}
+
+fn print_report<T: StatusReport>(device: &T) {  // T 타입은 StatusReport trait을 구현한 타입만 허용 (Trait bound)
+    device.status_report();
+}
+
+fn print_report(device: &impl StatusReport) {  // Trait bound를 더 간결하게 표현
+    device.status_report();
+}
+
+fn main() {
+    let lidar = LidarSensor {
+        name: String::from("front_lidar"),
+        distance: 0.45,
+    };
+
+    let motor = Motor {
+        id: 1,
+        speed: 1.2,
+    };
+
+    print_report(&lidar);
+    print_report(&motor);
+}
+```
+
+```rust
+fn debug_and_report<T>(device: &T)
+where
+    T: StatusReport + Debug,    // 조건 여러개
+{
+    ...
+}
+```
+
+---
+
 ## 파일
+
+### 쓰기
+
+#### fs::write
 
 ```rust
 use std::fs;
-use std::io::Write; // write_all() 메서드를 쓰기 위해 필요
 
 fn main() {
-    // 파일 쓰기
-    let mut file = fs::File::create("output.txt").expect("파일 생성 실패");
-    file.write_all(b"Hello, Rust!").expect("파일 쓰기 실패");
+    let log = "[INFO] Robot initialized\n[INFO] Sensor connected\n";
 
-    // 파일 읽기
-    let contents = fs::read_to_string("output.txt").expect("파일 읽기 실패");
-    println!("{}", contents);
+    fs::write("robot_log.txt", log)
+        .expect("로그 파일을 저장할 수 없습니다."); // 기존 내용이 있다면 덮어쓰기
+
+    println!("robot_log.txt 파일 저장 완료");
+}
+```
+
+#### OpenOptions
+
+```rust
+use std::fs::OpenOptions;
+use std::io::Write;
+
+fn main() {
+    let log_line = "[INFO] Robot heartbeat received\n";
+
+    let mut file = OpenOptions::new()
+        .create(true)               // 파일 없으면 새로 만든다
+        .append(true)               // 기존 내용 뒤에 추가
+        .open("robot_runtime.log")  // 해당 파일을 연다
+        .expect("로그 파일을 열 수 없습니다.");
+
+    file.write_all(log_line.as_bytes()) // as_bytes() : 문자열을 바이트로 변환
+        .expect("로그를 파일에 쓸 수 없습니다.");
+
+    println!("로그 추가 완료");
+}
+```
+
+#### Json
+
+```rust
+use serde::Deserialize; // 외부 데이터를 Rust Struct로 바꿀 수 있게 해주는 기능
+use serde::Serialize;   // Rust Struct를 외부 데이터 형식으로 바꿀 수 있게 해주는 기능
+
+#[derive(Debug, Deserialize, Serialize)]
+struct RobotConfig {
+    robot_name: String,
+    max_speed: f64,
+    safety_distance: f64,
+    battery_warning_level: u32,
+}
+
+fn load_robot_config(path: &str) -> Result<RobotConfig, String> {
+    let content = fs::read_to_string(path)  // Json 파일 읽기
+        .map_err(|error| format!("설정 파일 읽기 실패: {}", error))?;
+
+    let config: RobotConfig = serde_json::from_str(&content)  // Json 파싱
+        .map_err(|error| format!("JSON 파싱 실패: {}", error))?;
+
+    Ok(config)
+}
+
+fn save_analysis_result(path: &str, result: &SensorAnalysisResult) -> Result<(), String> {
+    let json_text = serde_json::to_string_pretty(result)  // Struct -> JSON
+        .map_err(|error| format!("JSON 변환 실패: {}", error))?;
+
+    fs::write(path, json_text)  // Json 파일 저장
+        .map_err(|error| format!("분석 결과 파일 저장 실패: {}", error))?;
+
+    Ok(())
+}
+
+fn main() {
+    let json_text = r#"
+    {
+        "robot_name": "mobile_robot_01",
+        "max_speed": 1.5,
+        "safety_distance": 0.7,
+        "battery_warning_level": 20
+    }
+    "#;
+    let result = SensorAnalysisResult {
+        robot_name: String::from("mobile_robot_01"),
+        danger_count: 2,
+        min_distance: 0.45,
+        need_stop: true,
+    };
+    // JSON -> Struct
+    let config: RobotConfig = serde_json::from_str(json_text)
+        .expect("JSON을 RobotConfig로 변환할 수 없습니다.");
+
+    // Struct -> JSON
+    let json_text = serde_json::to_string_pretty(&result)
+        .expect("Struct를 JSON으로 변환할 수 없습니다.");
+
+    println!("{:#?}", config);  // {:#?} : 예쁘게 줄바꿈 출력
+    println!("로봇 이름: {}", config.robot_name);
+    println!("최대 속도: {} m/s", config.max_speed);
+}
+```
+
+### 읽기
+
+```rust
+use std::fs;
+
+fn find_config_value(content: &str, key: &str) -> Option<String> {
+    for line in content.lines() {           // .lines() : 문자열을 줄 단위로 분리
+        let mut parts = line.split('=');    // .split() : 문자열을 특정 문자 기준으로 분리
+
+        let config_key = parts.next()?;     // .next() : 다음값을 반환하는 함수, 반환값 Option<&str>
+        let config_value = parts.next()?;
+
+        if config_key == key {
+            return Some(config_value.to_string());
+        }
+    }
+
+    None
+}
+
+fn read_f64_config(content: &str, key: &str) -> Result<f64, String> {
+    let value_text = find_config_value(content, key)
+        .ok_or(format!("{} 설정이 없습니다.", key))?;   // .ok_or(error값) : Option을 Result로 변환
+
+    let value = value_text
+        .parse::<f64>()
+        .map_err(|_| format!("{} 설정값을 숫자로 변환할 수 없습니다.", key))?; // .map_err(새로운 error값) : 에러값 변환 [|_| : 매개변수는 받되 사용하지 않겠다]
+
+    Ok(value)
+}
+
+fn main() {
+    let content = fs::read_to_string("robot_config.txt")
+        .expect("robot_config.txt 파일을 읽을 수 없습니다.");
+
+    match read_f64_config(&content, "max_speed") {
+        Ok(max_speed) => println!("최대 속도 설정: {} m/s", max_speed),
+        Err(error) => println!("설정 오류: {}", error),
+    }
+}
+```
+
+---
+
+## 비동기
+
+어떤 작업이 기다리는 동안 다른 작업을 진행할 수 있는 방식
+- **async** : 비동기 함수를 정의
+- **await** : 비동기 함수의 결과를 기다림
+- **tokio** : 비동기 런타임
+    - 런타임 : 프로그램이 실행되는 동안 뒤에서 일을 처리해주는 시스템
+
+### join!
+
+독립적인 비동기 작업 동시 실행
+
+```rust
+/* async fn을 호출하면 Future가 만들어진다.
+ * Future는 비동기 작업의 결과를 나타내는 객체.
+ * Future는 await 하거나 spawn 해야 실행된다.
+ */
+use tokio::time::{sleep, Duration};
+
+async fn read_lidar_data() {
+    println!("LiDAR 데이터 읽기 시작");
+    sleep(Duration::from_secs(2)).await;
+    println!("LiDAR 데이터 읽기 완료");
+}
+
+async fn read_motor_status() {
+    println!("Motor 상태 읽기 시작");
+    sleep(Duration::from_secs(2)).await;
+    println!("Motor 상태 읽기 완료");
+}
+
+async fn read_battery_status() {
+    println!("Battery 상태 읽기 시작");
+    sleep(Duration::from_secs(2)).await;
+    println!("Battery 상태 읽기 완료");
+}
+
+async fn read_lidar_min_distance() -> f64 {
+    println!("LiDAR 최소 거리 계산 중...");
+    sleep(Duration::from_secs(1)).await;
+    0.45
+}
+
+#[tokio::main]
+async fn main() {
+    println!("동시 실행 시작");
+
+    let (
+        min_distance,
+        _,
+        _,
+        _,
+    ) = tokio::join!(   // 출력 순서 보장 안됨
+        read_lidar_min_distance(),
+        read_lidar_data(),
+        read_motor_status(),
+        read_battery_status()
+    );
+
+    println!("동시 실행 종료");
+}
+```
+
+### spawn
+
+비동기 작업을 별도 태스크로 실행
+
+```rust
+use tokio::time::{sleep, Duration, interval};
+
+async fn sensor_task() {
+    for i in 1..=5 {
+        println!("[Sensor Task] LiDAR 데이터 수집 {}", i);
+        sleep(Duration::from_millis(500)).await;    // 주기
+    }
+}
+
+async fn diagnostic_task() {
+    for i in 1..=5 {
+        println!("[Diagnostic Task] 시스템 진단 {}", i);
+        sleep(Duration::from_millis(700)).await;
+    }
+}
+
+async fn sensor_loop() {
+    let mut ticker = interval(Duration::from_millis(500)); // 500ms 마다 tick 발생
+
+    for count in 1..=5 {
+        ticker.tick().await;
+        println!("[Sensor Loop] tick {}", count);
+    }
+}
+
+async fn read_sensor_value(sensor_name: &str) -> Result<f64, String> {
+    sleep(Duration::from_millis(500)).await;
+
+    if sensor_name == "lidar" {
+        Ok(0.45)
+    } else {
+        Err(format!("알 수 없는 센서: {}", sensor_name))
+    }
+}
+
+#[tokio::main]
+async fn main() {
+
+    sensor_loop().await; // spawn X
+
+    println!("로봇 비동기 태스크 시작");
+
+    // 출력 순서 보장 안됨
+    let sensor_handle = tokio::spawn(sensor_task());
+    let diagnostic_handle = tokio::spawn(diagnostic_task());
+
+    sensor_handle.await.expect("sensor_task 실패");
+    diagnostic_handle.await.expect("diagnostic_task 실패");
+
+    println!("로봇 비동기 태스크 종료");
+
+    match read_sensor_value("lidar").await {
+        Ok(value) => println!("센서값: {}", value),
+        Err(error) => println!("센서 오류: {}", error),
+    }
 }
 ```
 
@@ -666,14 +1170,18 @@ Cargo는 Rust의 공식 빌드 시스템 겸 패키지 매니저다.
 
 ## 프로젝트 구조
 
+- **Package**: Cargo가 관리하는 프로젝트 단위 (Cargo.toml이 있는 Rust 프로젝트)
+- **Binary Crate**: 실행 파일을 만드는 Crate (src/main.rs)
+- **Library Crate**: 라이브러리를 만드는 Crate (src/lib.rs)
+- **module**: 코드 안에서 기능별로 코드를 나누는 단위
+
 ### `cargo new` 직후
 
 ```
-my_project/
-├── Cargo.toml   # 프로젝트 설정 파일
+my_project/     # Package
+├── Cargo.toml  # 프로젝트 설정 파일
 ├── src/
 │   └── main.rs
-├── .git/
 └── .gitignore
 ```
 
