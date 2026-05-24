@@ -664,7 +664,7 @@ async fn main() {
 ```rust
 use std::thread;
 
-// 출력 순서 보장 안 됨
+// 참조
 fn main() {
     let handle = thread::spawn(|| {
         for i in 0..5 {
@@ -687,7 +687,7 @@ fn main() {
         println!("{:?}", data);
     });
     
-    handle.join().unwrap(); // 현재 작업 중인 스레드를 멈추고, 대상 스레드의 종료를 기다린다
+    handle.join().unwrap();
     // println!("{:?}", data);  // ❌ data는 이미 이동됨
 }
 ```
@@ -698,36 +698,90 @@ fn main() {
 
 코드를 논리적으로 분할.
 
+### 동일 디렉토리
+
 ```
 src/
-├── main.rs
-└── robot/
-    ├── lib.rs
-    ├── sensor.rs
-    └── motor.rs
+ ├── main.rs
+ ├── robot.rs
+ ├── sensor.rs
+ └── control.rs
 ```
 
 ```rust
-/* ========== robot/lib.rs ========== */
-pub mod sensor;
-pub mod motor;
-
-pub fn greet() {
-    println!("로봇 시작");
+/* ========== robot.rs ========== */
+pub struct Robot {
+    pub name: String,
+    pub battery: i32,
 }
 
-/* ========== robot/sensor.rs ========== */
-pub fn read() -> f64 {
-    0.45
+/* ========== sensor.rs ========== */
+pub fn read_sensor() -> i32 {
+    10
+}
+
+/* ========== control.rs ========== */
+pub fn decide(distance: i32) {
+    if distance < 5 {
+        println!("정지");
+    } else {
+        println!("이동");
+    }
 }
 
 /* ========== main.rs ========== */
 mod robot;
-use robot::sensor;
+mod sensor;
+mod control;
+
+use sensor::read_sensor;
+use control::decide;
 
 fn main() {
-    robot::greet();
-    let distance = sensor::read();
+    let distance = read_sensor();
+    decide(distance);
+}
+```
+
+### 폴더 모듈
+
+```
+src/
+ ├── main.rs
+ └── robot/
+     ├── mod.rs
+     ├── sensor.rs
+     └── control.rs
+```
+
+```rust
+/* ========== robot/mod.rs ========== */
+pub mod sensor;
+pub mod control;
+
+/* ========== robot/sensor.rs ========== */
+pub fn read_sensor() -> i32 {
+    10
+}
+
+/* ========== robot/control.rs ========== */
+pub fn decide(distance: i32) {
+    if distance < 5 {
+        println!("정지");
+    } else {
+        println!("이동");
+    }
+}
+
+/* ========== main.rs ========== */
+mod robot;
+
+use robot::sensor::read_sensor;
+use robot::control::decide;
+
+fn main() {
+    let distance = read_sensor();
+    decide(distance);
 }
 ```
 
