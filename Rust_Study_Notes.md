@@ -164,6 +164,34 @@ fn divide(a: i32, b: i32) -> i32 {
 }
 ```
 
+### closure
+
+무명함수
+
+```rust
+// 기본형
+let add = |a: i32, b: i32| -> i32 {
+    a + b
+};
+
+// 타입 생략 가능
+let add = |a, b| a + b;
+
+// 매개변수 없는 클로저
+let hello = || println!("hello");
+
+// 클로저가 외부 변수를 캡처
+let x = 10;
+let add_x = |y| x + y;
+
+// move 키워드를 사용하면 클로저가 외부 변수의 소유권을 가져옴
+let s = String::from("hello");
+let c = move || {
+    println!("{}", s);
+};
+c();
+```
+
 ---
 
 ## 5. 조건문 & 반복문
@@ -807,4 +835,14 @@ cargo check
 
 # 정리
 cargo clean
+```
+
+---
+
+## 17. 여러 함수들
+
+```rust
+// 포화 뺄셈 — 앞 숫자의 타입 최솟값보다 작아지지 않음
+100_u32.saturating_sub(count % 100); // 0보다 작아지지 않음
+
 ```

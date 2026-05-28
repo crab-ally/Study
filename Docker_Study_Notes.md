@@ -169,7 +169,7 @@ services:
 | `volumes` | 호스트와 컨테이너 디렉토리 연결 (`./workspace → /workspace`) |
 | `working_dir` | 컨테이너 시작 시 기본 작업 디렉토리 |
 | `command` | 컨테이너 실행 시 수행할 명령어 (`bash`) |
-| `ports` | 포트 연결 (호스트:컨테이너) |
+| `ports` | 포트 연결 (호스트:컨테이너) |  
 
 > **`.yml` vs `.yaml`** — 완전히 동일한 형식. 초기에는 일부 구형 OS가 확장자를 3글자로 제한하여 `.yml`이 생겨났으며, 현재는 둘 다 혼용.  
 
@@ -184,6 +184,7 @@ services:
 | `docker compose up` | 모든 서비스 시작 |
 | `docker compose up --build` | 이미지를 새로 빌드 후 시작 |
 | `docker compose build` | 실행 없이 이미지만 빌드 |
+| `docker compose build --no-cache` | 캐시 없이 이미지를 새로 빌드 (전체 새로 빌드) |
 
 **상태 확인**
 
