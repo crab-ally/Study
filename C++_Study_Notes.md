@@ -148,7 +148,7 @@ void print_battery(int battery) {
 /* 방법1: 함수 포인터 방식 */
 void run_callback(void (*callback)()) {
     std::cout << "Before callback" << std::endl;
-    callback();   // 전달받은 함수 실행
+    callback();
     std::cout << "After callback" << std::endl;
 }
 /* 방법2: std::function 방식 */
@@ -173,6 +173,83 @@ int main() {
 
 ### 4-2. 람다 함수
 
+이름 없는 함수
+
+```cpp
+[캡쳐](매개변수) {
+    // 실행
+}
+```
+
+```cpp
+// 바로 실행
+[]() {
+    std::cout << "Lambda called immediately" << std::endl;
+}();
+
+// 매개변수와 반환값이 있는 람다 함수
+auto is_battery_low = [](int battery) {
+    return battery < 20;
+};
+is_battery_low(10);
+
+// 콜백 함수 + 람다 함수
+void run_callback(std::function<void()> callback) {
+    std::cout << "Before callback" << std::endl;
+    callback();
+    std::cout << "After callback" << std::endl;
+}
+int main() {
+    run_callback([]() {
+        std::cout << "Lambda callback called." << std::endl;
+    });
+
+    return 0;
+}
+```
+
+#### 캡쳐
+
+람다 바깥에 있는 변수를 람다 안에서 사용
+
+```cpp
+/* 값 캡쳐 - 값을 복사하여 사용
+ * 람다 함수 초기화 이후 외부 변수가 변경되어도 람다 내부 값은 변하지 않음
+ */
+int battery = 80;
+
+auto print_battery = [battery]() {
+    std::cout << "Battery: " << battery << "%" << std::endl;
+};
+
+/* 참조 캡처 - 외부 변수의 주소를 복사하여 사용
+ * 람다 함수 초기화 이후 외부 변수가 변경되면 람다 내부 값도 변경됨
+ */
+int battery = 80;
+auto print_battery = [&battery]() {
+    std::cout << "Battery in lambda: " << battery << "%" << std::endl;
+};  // Battery in lambda: 40%
+auto drain_battery = [&battery]() {
+    battery -= 10;
+};
+battery = 40;
+
+// 전체 캡쳐 [=] - 모든 변수 값 캡쳐
+auto lambda = [=]() {
+    std::cout << battery << ", " << speed << std::endl;
+};
+
+// 전체 참조[&] - 모든 변수 참조
+auto lambda = & {
+    battery -= 10;
+    speed = 0.0;
+};
+
+// 클래스 안에서 멤버 변수와 함수 접근
+[this]() {
+    this->timer_callback();
+}
+```
 
 ---
 
