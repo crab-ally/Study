@@ -16,15 +16,15 @@
 
 ```
 <mujoco>
-  <option .../>          ← 전역 물리 설정
-  <worldbody>            ← 모든 물체의 루트
-    <light .../>
-    <geom .../>          ← 바닥 등 고정 형상
+  <option .../>          ← 시뮬레이터 전체 설정
+  <worldbody>            ← 모든 물체의 루트(월드 좌표계)
+    <light .../>         ← 조명
+    <geom .../>          ← 월드에 고정된 형상
     <body ...>           ← 움직이는 물체 단위(물리 객체의 기준 좌표계)
-      <joint .../>
-      <geom .../>
-      <site .../>
-      <camera .../>
+      <joint .../>       ← 부모 body에 대해 어떻게 움직일 수 있는지 정의
+      <geom .../>        ← body의 실제 모양
+      <site .../>        ← 위치 표시용 점(marker)
+      <camera .../>      ← 카메라
     </body>
   </worldbody>
   <actuator> ... </actuator>
@@ -61,7 +61,7 @@ body의 모양과 물리 속성을 정의합니다.
 | `box` | 직육면체, `size` = 각 축 반길이 (x y z) |
 | `sphere` | 구, `size` = 반지름 |
 | `capsule` | 캡슐 (원통 + 양 끝 반구), `fromto="x1 y1 z1 x2 y2 z2"` 로 양 끝점 지정, `size` = 반지름 |
-| `cylinder` | 원통 |
+| `cylinder` | 원통, `size` = [반지름, 반높이] |
 
 ### 4-2. geom 속성
 
