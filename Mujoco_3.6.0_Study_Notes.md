@@ -1,6 +1,6 @@
 # Mujoco 3.6.0
 
-## 설치 및 버전 확인
+## 1. 설치 및 버전 확인
 
 - 설치
 
@@ -10,84 +10,244 @@
 
 `mujoco.__version__`
 
-## MJCF XML
+---
 
-> **body**: 물리 객체의 기준 좌표계
+## 2. MJCF XML 구조
+
+```
+<mujoco>
+  <option .../>          ← 전역 물리 설정
+  <worldbody>            ← 모든 물체의 루트
+    <light .../>
+    <geom .../>          ← 바닥 등 고정 형상
+    <body ...>           ← 움직이는 물체 단위(물리 객체의 기준 좌표계)
+      <joint .../>
+      <geom .../>
+      <site .../>
+      <camera .../>
+    </body>
+  </worldbody>
+  <actuator> ... </actuator>
+  <sensor>   ... </sensor>
+</mujoco>
+```
+
+> 하나의 body 안에 여러 geom을 넣을 수 있으며, joint는 부모 body와의 상대 운동을 정의합니다.
 
 ---
 
-### option 속성
+## 3. `<option>` — 전역 물리 설정
+
+```xml
+<option timestep="0.01" gravity="0 0 -9.81"/>
+```
 
 | 속성 | 설명 |
-| --- | --- |
-| `timestep` | 시뮬레이션(mj_step()) 시간 간격 [s] |
-| `gravity="x y z"` | 중력 벡터 [m/s²] (기본값: "0 0 -9.81") |
+|------|------|
+| `timestep` | `mj_step()` 한 번의 시간 간격 [s] |
+| `gravity="x y z"` | 중력 벡터 [m/s²] (기본값: `"0 0 -9.81"`) |
 
 ---
 
-### geom
+## 4. `<geom>` — 형상 정의
 
-body의 모양 정의
+body의 모양과 물리 속성을 정의합니다.
 
-### geom 속성
-
-| 속성 | 설명 |
-| --- | --- |
-| `pos` | 초기 위치 (x y z) [m] |
-| `size` | 크기 [m] (박스·캡슐은 반지름 개념, 구는 반지름 단일값) |
-| `mass` | 질량 [kg] |
-| `friction="sliding torsional rolling"` | 마찰 계수 — sliding: 미끄럼, torsional: 비틀림, rolling: 구름 |
-| `euler="rx ry rz"` | 각 축 기준 회전각 [deg] (예: "0 30 0" → y축으로 30° 기울임) |
-| `solref="timeconst damping"` | 접촉 후 복원 특성 — timeconst: 복원 시간상수 [s], damping: 감쇠 비율 |
-| `solimp="dmin dmax width"` | 접촉 강성 — dmin/dmax: 최소·최대 강성(0~1), width: 전환 폭 |
-
-### geom type
+### 4-1. geom type
 
 | `type` | 설명 |
-| --- | --- |
+|---|---|
 | `plane` | 무한 평면 (바닥에 사용) |
-| `box` | 직육면체, size = 각 축 반길이 (x y z) |
-| `sphere` | 구, size = 반지름 |
-| `capsule` | 캡슐 (원통 + 양 끝 반구), `fromto="x1 y1 z1 x2 y2 z2"`로 양 끝점 지정, size = 반지름 |
+| `box` | 직육면체, `size` = 각 축 반길이 (x y z) |
+| `sphere` | 구, `size` = 반지름 |
+| `capsule` | 캡슐 (원통 + 양 끝 반구), `fromto="x1 y1 z1 x2 y2 z2"` 로 양 끝점 지정, `size` = 반지름 |
+| `cylinder` | 원통 |
+
+### 4-2. geom 속성
+
+| 속성 | 설명 |
+|------|------|
+| `pos` | 초기 위치 (x y z) [m] |
+| `size` | 크기 [m] |
+| `mass` | 질량 [kg] |
+| `euler="rx ry rz"` | 각 축 기준 회전각 [deg] (예: `"0 30 0"` → y축 30° 기울임) |
+| `friction="sliding torsional rolling"` | 마찰 계수 — 미끄럼 / 비틀림 / 구름 |
+| `solref="timeconst damping"` | 접촉 후 복원 특성 — 복원 시간상수 [s] / 감쇠 비율 |
+| `solimp="dmin dmax width"` | 접촉 강성 — 최소·최대 강성(0~1) / 전환 폭 |
+| `rgba="r g b a"` | 색상 및 투명도 |
 
 ---
 
-### joint 속성
+## 5. `<joint>` — 관절 정의
 
-> **joint**: body의 움직임 정의
+body의 움직임을 정의합니다. joint가 없으면 body는 부모에 고정됩니다.
 
 | 속성 | 설명 |
-| --- | --- |
+|------|------|
 | `type="hinge"` | 회전 관절 (경첩) |
 | `type="slide"` | 직선 이동 관절 |
 | `axis="x y z"` | 관절 동작 기준 방향 벡터 (hinge: 회전축, slide: 이동축) |
-| `limited="true"` | range 제한 활성화 |
+| `limited="true"` | `range` 제한 활성화 |
 | `range` | hinge: 각도 범위 [deg], slide: 이동 범위 [m] |
-| `<freejoint/>` | 6자유도, 물체가 공간에서 자유롭게 이동·회전 |
+| `<freejoint/>` | 6자유도 — 공간에서 자유롭게 이동·회전 |
+
+> **qpos / qvel 구조**
+> - `freejoint`: qpos 7개 `[x y z qw qx qy qz]`, qvel 6개 `[vx vy vz wx wy wz]`
+> - `hinge` / `slide`: qpos 1개, qvel 1개
 
 ---
 
-### light 속성
+## 6. `<light>` — 조명
 
 | 속성 | 설명 |
-| --- | --- |
+|------|------|
 | `pos` | 조명 위치 (x y z) [m] |
-| `dir` | 조명 방향 벡터 (기본값: "0 0 -1", 아래 방향) |
-| `diffuse` | 난반사 색상 (r g b, 기본값: "0.7 0.7 0.7") |
-| `specular` | 정반사 색상 (r g b, 기본값: "0.3 0.3 0.3") |
-| `directional` | true: 태양광처럼 방향만 있는 조명, false: 점광원 (기본값: false) |
-| `castshadow` | 그림자 생성 여부 (기본값: true) |
+| `dir` | 조명 방향 벡터 (기본값: `"0 0 -1"`, 아래 방향) |
 
 ---
 
-### 기본 구조 예시
+## 7. `<camera>` — 카메라
+
+```xml
+<camera name="front_camera" pos="2 -3 2" xyaxes="1 0 0  0 0 1"/>
+```
+
+| 속성 | 설명 |
+|------|------|
+| `pos` | 카메라 위치 |
+| `xyaxes="x1 x2 x3 y1 y2 y3"` | 카메라 방향을 정의하는 x·y 축 벡터 |
+
+---
+
+## 8. `<site>` — 기준점
+
+공간상의 특정 위치·방향을 표시하는 마커입니다.
+센서의 측정 기준점으로 활용하거나, 엔드 이펙터 위치 추적에 사용합니다.
+
+```xml
+<site name="end_site" pos="1 0 0" size="0.05" rgba="1 0 0 1"/>
+```
+
+| 속성 | 설명 |
+|------|------|
+| `pos` | body 기준 site의 위치 |
+| `size` | 화면 표시 크기 |
+| `rgba` | 색상 및 투명도 |
+
+---
+
+## 9. `<actuator>` — 구동기
+
+### 9-1. motor — 힘/토크 직접 입력
+
+```xml
+<motor name="hinge_motor"
+       joint="hinge_joint"
+       gear="1"
+       ctrllimited="true"
+       ctrlrange="-5 5"/>
+```
+
+| 속성 | 설명 |
+|---|---|
+| `gear` | 입력을 힘/토크로 변환하는 비율 |
+
+### 9-2. position — 목표 위치 추종 (PD 제어)
+
+```xml
+<position name="pos_servo"
+           joint="joint1"
+           kp="10"
+           ctrllimited="true"
+           ctrlrange="-3.14 3.14"/>
+```
+
+| 속성 | 설명 |
+|---|---|
+| `kp` | 위치 오차에 대한 제어 강도 (position 전용) |
+
+### 9-3. velocity — 목표 속도 추종
+
+```xml
+<velocity name="wheel_velocity_servo"
+           joint="wheel_joint"
+           kv="5"
+           ctrllimited="true"
+           ctrlrange="-10 10"/>
+```
+
+| 속성 | 설명 |
+|---|---|
+| `kv` | 속도 오차에 대한 제어 강도 (velocity 전용) |
+
+### 9-4. 공통 속성
+
+| 속성 | 설명 |
+|---|---|
+| `joint` | 구동할 joint 이름 |
+| `ctrllimited` | `ctrlrange` 제한 사용 여부 |
+| `ctrlrange` | 입력 가능한 제어값 범위 |
+
+> **제어 입력 할당**: `data.ctrl[actuator_id] = value`
+> - motor: 힘/토크 [N 또는 Nm]
+> - position: 목표 위치 [rad]
+> - velocity: 목표 속도 [rad/s]
+
+---
+
+## 10. `<sensor>` — 센서
+
+### 10-1. joint 상태 센서
+
+```xml
+<jointpos name="joint1_pos" joint="joint1"/>   <!-- 위치 -->
+<jointvel name="joint1_vel" joint="joint1"/>   <!-- 속도 -->
+```
+
+### 10-2. site 위치 센서
+
+```xml
+<!-- 특정 site의 3D 위치 측정 → [x, y, z] -->
+<framepos name="end_site_position" objtype="site" objname="end_site"/>
+```
+
+### 10-3. IMU (가속도 + 각속도)
+
+```xml
+<accelerometer name="imu_acc"  site="imu_site"/>
+<gyro          name="imu_gyro" site="imu_site"/>
+```
+
+### 10-4. 힘/토크 센서
+
+```xml
+<force  name="force_sensor"  site="force_site"/>   <!-- [fx, fy, fz] -->
+<torque name="torque_sensor" site="torque_site"/>   <!-- [tx, ty, tz] -->
+```
+
+> force: 직선 방향 힘  
+> torque: 회전 방향 힘
+
+### 10-5. 공통 속성
+
+| 속성 | 설명 |
+|------|------|
+| `joint` | 측정 대상 joint 이름 (joint 직접 측정용) |
+| `objtype` | 측정 대상 종류 (`site`, `body` 등) |
+| `objname` | 측정 대상 이름 |
+| `site` | 가속도·각속도·힘·토크 측정 기준 site 이름 |
+
+---
+
+## 11. XML 전체 예시
 
 ```xml
 <mujoco>
     <option timestep="0.01" gravity="0 0 -9.81"/>
+
     <worldbody>
-        <!-- 조명: pos에서 dir 방향으로 빛을 쏨 -->
         <light name="top_light" pos="0 0 3" dir="0 0 -1" castshadow="true"/>
+        <camera name="front_camera" pos="2 -3 2" xyaxes="1 0 0  0 0 1"/>
 
         <!-- 바닥 -->
         <geom name="ground" type="plane" size="5 5 0.1"
@@ -103,6 +263,7 @@ body의 모양 정의
         <body name="box_body" pos="0 0 1">
             <freejoint/>
             <geom name="box_geom" type="box" size="0.2 0.2 0.2" mass="1"
+                  rgba="0.2 0.4 1 1"
                   solref="0.01 1" solimp="0.9 0.95 0.001"/>
         </body>
 
@@ -113,137 +274,191 @@ body의 모양 정의
                   solref="0.01 1" solimp="0.9 0.95 0.001"/>
         </body>
 
-        <!-- 회전 관절 -->
-        <body name="link1" pos="0 0 0">
-            <joint name="joint1" type="hinge" axis="0 0 1" limited="true" range="-90 90"/>
-            <geom name="link1_geom" type="capsule" fromto="0 0 0 1 0 0" size="0.05" mass="1"/>
+        <!-- 회전 관절 + 엔드 이펙터 site -->
+        <body name="base" pos="0 0 0">
+            <joint name="joint1" type="hinge" axis="0 0 1"
+                   limited="true" range="-180 180"/>
+            <geom name="link1" type="capsule"
+                  fromto="0 0 0  1 0 0" size="0.05" mass="1"/>
+            <site name="end_site" pos="1 0 0" size="0.05" rgba="1 0 0 1"/>
         </body>
 
         <!-- 직선 이동 관절 -->
         <body name="slider" pos="0 0 0.5">
-            <joint name="slide_x" type="slide" axis="1 0 0" limited="true" range="-1 1"/>
+            <joint name="slide_x" type="slide" axis="1 0 0"
+                   limited="true" range="-1 1"/>
             <geom name="slider_geom" type="box" size="0.1 0.1 0.1" mass="1"/>
         </body>
     </worldbody>
+
+    <actuator>
+        <motor name="hinge_motor" joint="joint1" gear="1" ctrllimited="true" ctrlrange="-5 5"/>
+        <position name="joint1_servo" joint="joint1" kp="20" ctrllimited="true" ctrlrange="-3.14 3.14"/>
+        <velocity name="slide_velocity" joint="slide_x" kv="5" ctrllimited="true" ctrlrange="-10 10"/>
+    </actuator>
+
+    <sensor>
+        <jointpos name="joint1_pos" joint="joint1"/>
+        <jointvel name="joint1_vel" joint="joint1"/>
+        <framepos name="end_site_position" objtype="site" objname="end_site"/>
+    </sensor>
 </mujoco>
 ```
 
-```xml
-<actuator>
-    <!-- 관절에 직접 힘 또는 토크를 넣는 방식 -->
-    <motor name="hinge_motor"
-           joint="hinge_joint"
-           gear="1"
-           ctrllimited="true"
-           ctrlrange="-5 5"/>
-
-    <!-- 목표 위치를 따라가도록 제어 -->
-    <position name="pos_servo"
-            joint="joint1"
-            kp="10"
-            ctrllimited="true"
-            ctrlrange="-3.14 3.14"/>
-</actuator>
-```
-
-| 속성 | 설명 |
-| --- | --- |
-| `joint` | 어느 joint를 구동할 지 지정 |
-| `gear` | 입력을 힘/토크로 변환하는 비율 |
-| `ctrllimited` | ctrlrange 제한 사용 여부 |
-| `ctrlrange` | 입력 가능한 제어값 범위 |
-| `kp` | 위치 오차에 대한 제어 강도 |
-
 ---
 
-## 모델 및 데이터
+## 12. Python API
+
+### 12-1. 모델·데이터 생성
 
 ```python
-# xml 문자열을 mujoco 모델 객체로 변환
-model = mujoco.MjModel.from_xml_string(path)
+import mujoco
 
-# 시뮬레이션 중 가변 값을 담는 객체
+# XML 파일 경로로 모델 로드
+model = mujoco.MjModel.from_xml_path(path)
+
+# XML 문자열로 모델 로드
+model = mujoco.MjModel.from_xml_string(xml_string)
+
+# 시뮬레이션 가변 상태를 담는 객체
 data = mujoco.MjData(model)
 
-# 시뮬레이션 한 스텝 진행
+# 시뮬레이션 한 스텝 진행 (timestep 만큼)
 mujoco.mj_step(model, data)
+```
 
-# name으로 id 찾기
-id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "name")
+### 12-2. 이름 ↔ ID 변환
 
-# id으로 name 찾기
-name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, "id")
+```python
+# name → id
+body_id     = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "body_name")
+actuator_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "actuator_name")
+sensor_id   = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, "sensor_name")
+
+# id → name
+geom_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
+```
+
+> `mjtObj` 주요 상수: `mjOBJ_BODY`, `mjOBJ_GEOM`, `mjOBJ_JOINT`,
+> `mjOBJ_ACTUATOR`, `mjOBJ_SENSOR`, `mjOBJ_SITE`
+
+### 12-3. model 속성
+
+```python
+model.nq          # qpos 원소 수 (위치 상태 변수 개수)
+model.nv          # qvel 원소 수 (속도 상태 변수 개수)
+model.opt.timestep  # 설정된 timestep 값
+
+# 센서 데이터 인덱스 정보
+model.sensor_adr[sensor_id]   # sensordata 내 시작 인덱스
+model.sensor_dim[sensor_id]   # 해당 센서의 데이터 개수
+```
+
+### 12-4. data 속성
+
+```python
+data.time          # 현재 시뮬레이션 시간 [s]
+data.ncon          # 현재 접촉 쌍의 수
+
+# 접촉 정보
+data.contact[index].geom1   # 접촉한 geom id (첫 번째)
+data.contact[index].geom2   # 접촉한 geom id (두 번째)
+
+data.xpos[body_id]      # body의 월드 좌표 [x, y, z]
+data.qpos               # 모든 joint 위치값 (상태)
+data.qvel               # 모든 joint 속도값
+
+data.sensordata         # 모든 센서 데이터 (1D 배열, 연속 저장)
+```
+
+### 12-5. 값 할당
+
+```python
+# 액추에이터 제어 입력
+data.ctrl[actuator_id] = value
+
+# freejoint 초기 위치·자세 직접 설정
+# qpos: [x, y, z, qw, qx, qy, qz]  (7개)
+data.qpos[0:3] = [1.0, 0.0, 0.5]    # 위치
+data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # 자세 (단위 쿼터니언)
+
+# freejoint 속도 직접 설정
+# qvel: [vx, vy, vz, wx, wy, wz]  (6개)
+data.qvel[0] = 2.0   # x 방향 선속도
+```
+
+> **값 할당 후 순방향 키네마틱 갱신이 필요한 경우**:
+> `mujoco.mj_forward(model, data)` 를 호출하면 `xpos` 등 파생 값이 즉시 갱신됩니다.
+> `mj_step()` 은 내부적으로 `mj_forward()` 를 포함합니다.
+
+### 12-6. 센서 데이터 읽기
+
+```python
+def read_sensor(model, data, name):
+    sid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, name)
+    adr = model.sensor_adr[sid]
+    dim = model.sensor_dim[sid]
+    return data.sensordata[adr:adr + dim].copy()
+
+pos = read_sensor(model, data, "end_site_position")  # [x, y, z]
 ```
 
 ---
 
-## 데이터 상세
-
-1. model
-
-```python
-# 위치 상태 변수 개수 (len(data.qpos) == model.nq)
-model.nq
-
-# 속도 상태 변수 개수
-model.nv
-```
-
-2. data
-
-```python
-# 시간
-data.time
-
-# 접촉 개수 (닿음 & 충돌)
-data.ncon
-
-# 접촉 정보 & 접촉한 두 geom id
-data.contact[index]
-data.contact[index].geom1
-data.contact[index].geom2
-
-# body 위치 - [x y z]
-data.xpos[id]
-
-# joint 위치값(상태값)
-data.qpos
-
-# joint 속도
-data.qvel
-```
-
----
-
-## 값 할당
-
-```python
-# freejoint qpos - 3개의 위치 + 4개의 회전(쿼터니언) = 7개의 상태 [x y z qw qx qy qz]
-# freejoint qvel - 3개의 선속도 + 3개의 각속도 = 6개의 속도 [vx vy vz wx wy wz]
-# x방향 속도 할당
-data.qvel[0] = 2.0
-
-# actuator에 제어 입력 할당
-# motor - 힘/토크, position - 목표 위치 [rad]
-data.ctrl[index] = value
-```
-
----
-
-## viewer
+## 13. Viewer (실시간 시각화)
 
 ```python
 import time
 import mujoco
 import mujoco.viewer
 
-# MuJoCo viewer 창을 실행
 with mujoco.viewer.launch_passive(model, data) as viewer:
     while viewer.is_running():
-        # 시뮬레이션을 한 스텝 진행
         mujoco.mj_step(model, data)
-        # 시뮬레이션 상태를 viewer 화면에 반영
-        viewer.sync()
-        # 너무 빠르게 실행되지 않도록 잠깐 대기
-        time.sleep(model.opt.timestep)
+        viewer.sync()   # 시뮬레이션 상태를 viewer 화면에 반영
+        time.sleep(model.opt.timestep)   # 너무 빠르게 실행되지 않도록 잠깐 대기
+```
+
+> `launch_passive`: 별도 창을 띄우되 메인 루프는 Python이 관리합니다.
+
+---
+
+## 14. CSV 데이터 로깅
+
+```python
+import csv
+import math
+import mujoco
+
+log_file = "log.csv"
+
+# 파일 열기
+with open(log_file, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)  # csv 파일에 행을 기록하는 객체
+    writer.writerow([       # 행 기록
+        "time",
+        "target_deg",
+        "qpos_deg",
+        "qvel_deg_s",
+        "sensor_pos_deg",
+        "sensor_vel_deg_s"
+    ])
+
+    for _ in range(500):
+        target = math.radians(45) * math.sin(2 * math.pi * 0.5 * data.time)
+        data.ctrl[0] = target
+
+        mujoco.mj_step(model, data)
+
+        sensor_pos = data.sensordata[0]
+        sensor_vel = data.sensordata[1]
+
+        writer.writerow([
+            data.time,
+            math.degrees(target),
+            math.degrees(data.qpos[0]),
+            math.degrees(data.qvel[0]),
+            math.degrees(sensor_pos),
+            math.degrees(sensor_vel)
+        ])
 ```
