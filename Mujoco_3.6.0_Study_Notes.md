@@ -345,13 +345,16 @@ geom_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
 ### 12-3. model 속성
 
 ```python
-model.nq          # qpos 원소 수 (위치 상태 변수 개수)
-model.nv          # qvel 원소 수 (속도 상태 변수 개수)
+model.nq            # qpos 원소 수 (위치 상태 변수 개수)
+model.nv            # qvel 원소 수 (속도 상태 변수 개수)
 model.opt.timestep  # 설정된 timestep 값
 
 # 센서 데이터 인덱스 정보
 model.sensor_adr[sensor_id]   # sensordata 내 시작 인덱스
 model.sensor_dim[sensor_id]   # 해당 센서의 데이터 개수
+
+# 속도 데이터 인섹스 정보
+model.jnt_dofadr[joint_id]    # qvel 내 해당 joint의 시작 인덱스
 ```
 
 ### 12-4. data 속성
