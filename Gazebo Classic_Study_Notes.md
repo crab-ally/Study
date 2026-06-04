@@ -21,9 +21,11 @@ setup.py: Python 패키지의 빌드·설치 설정 파일.
 
 ## 1. 파일 형식 비교
 
+```
 SDF (.world)  : Gazebo 전체 환경(월드) 정의
 URDF (.urdf)  : 로봇 구조 정의 (ROS 표준)
 Xacro (.xacro): URDF의 매크로 확장판 (변수·함수 지원)
+```
 
 ---
 
@@ -378,7 +380,7 @@ Xacro (.xacro): URDF의 매크로 확장판 (변수·함수 지원)
 
 ---
 
-### 3-2. Gazebo 센서 확장 태그 (<gazebo reference="...">)
+### 3-2. Gazebo 센서 확장 태그 (`<gazebo reference="...">`)
 
 URDF 표준에는 없는 Gazebo 전용 태그. 특정 링크에 센서·재질을 붙일 때 사용.
 
