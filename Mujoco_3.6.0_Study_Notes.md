@@ -340,9 +340,22 @@ geom_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
 ```
 
 > `mjtObj` 주요 상수: `mjOBJ_BODY`, `mjOBJ_GEOM`, `mjOBJ_JOINT`,
-> `mjOBJ_ACTUATOR`, `mjOBJ_SENSOR`, `mjOBJ_SITE`
+> `mjOBJ_ACTUATOR`, `mjOBJ_SENSOR`, `mjOBJ_SITE`, `mjOBJ_CAMERA`
 
-### 12-3. model 속성
+### 12-3. mujoco 속성
+
+```python
+# 이미지 생성
+renderer = mujoco.Renderer(model, height=480, width=640)       # 이미지 렌더링을 위한 객체 생성 함수
+renderer.enable_depth_rendering()           # render() 시 깊이(Depth) 데이터 반환
+renderer.disable_depth_rendering()          # render() 시 RGB 데이터 반환
+renderer.update_scene(data, camera="name")  # 시점 갱신
+renderer.render()                           # 이미지를 numpy 배열로 받기 [RGB - 0~255]
+
+mujoco.mj_resetData(model, data)    # data 초기화
+```
+
+### 12-4. model 속성
 
 ```python
 model.nq            # qpos 원소 수 (위치 상태 변수 개수)
@@ -357,7 +370,7 @@ model.sensor_dim[sensor_id]   # 해당 센서의 데이터 개수
 model.jnt_dofadr[joint_id]    # qvel 내 해당 joint의 시작 인덱스
 ```
 
-### 12-4. data 속성
+### 12-5. data 속성
 
 ```python
 data.time          # 현재 시뮬레이션 시간 [s]
@@ -374,7 +387,7 @@ data.qvel               # 모든 joint 속도값
 data.sensordata         # 모든 센서 데이터 (1D 배열, 연속 저장)
 ```
 
-### 12-5. 값 할당
+### 12-6. 값 할당
 
 ```python
 # 액추에이터 제어 입력
@@ -394,7 +407,7 @@ data.qvel[0] = 2.0   # x 방향 선속도
 > `mujoco.mj_forward(model, data)` 를 호출하면 `xpos` 등 파생 값이 즉시 갱신됩니다.
 > `mj_step()` 은 내부적으로 `mj_forward()` 를 포함합니다.
 
-### 12-6. 센서 데이터 읽기
+### 12-7. 센서 데이터 읽기
 
 ```python
 def read_sensor(model, data, name):
