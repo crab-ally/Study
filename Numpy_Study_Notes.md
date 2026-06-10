@@ -211,3 +211,15 @@ print(np.linalg.inv(A))
 B = np.linalg.inv(A) @ A   # 단위행렬이 되어야 함
 print(np.allclose(B, np.eye(2)))  # True
 ```
+
+---
+
+## 6. 난수
+
+```python
+# 정수 랜덤값
+np.random.randint(low, high, size)
+
+# 0 ~ 1 사이 실수 랜덤값
+np.random.rand(size)
+```
