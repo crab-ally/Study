@@ -396,3 +396,18 @@ for문으로 순회 가능한 객체 → `list`, `tuple`, `str`, `dict`, `set`, 
 | `faker` | 가짜 데이터 생성 |
 | `pandas` | 데이터 읽기·가공·분석 (엑셀처럼) |
 | `matplotlib` | 데이터 시각화 (그래프) |
+
+---
+
+## 11. 추가
+
+1. 리스트 컴프리헨션
+
+```python
+# [표현식 for 요소 in 순회가능객체 if 조건]
+
+# 짝수만 제곱
+[x**2 for x in range(10) if x % 2 == 0]
+```
+
+2. max(objects, key=기준)
