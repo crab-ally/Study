@@ -85,5 +85,3 @@ y = wx + b
 - 고객 그룹 분류
 - 데이터 군집화(Clustering)
 - 차원 축소(Dimensionality Reduction)
-
----
