@@ -22,7 +22,7 @@
 |---|---|
 | frame | 기준 좌표계 |
 | transform | 한 좌표계의 점을 다른 좌표계로 변환 |
-| unit vector | 크기가 1인 벡터 (방향만 유지) |
+| unit vector | 크기를 1로 만든 벡터 (방향만 유지) |
 
 ---
 
@@ -120,7 +120,7 @@ v_lateral  = np.dot(velocity, lateral)   # 측면 속도 성분
 행렬은 좌표를 변환하는 도구이다.
 
 ```python
-# 행렬 * 벡터
+# 행렬 * 벡터 = 새로운 벡터
 A = [[a, b],
      [c, d]]
 v = (x, y)
@@ -130,14 +130,14 @@ v = (x, y)
 
 ### 3-1. 특수 행렬
 
-```
-단위행렬: 아무 변화도 주지 않는 행렬
+```python
+# 단위행렬: 아무 변화도 주지 않는 행렬
 [[1, 0],
- [0, 1]]
+ [0, 1]] → np.eye(2)
 
-0행렬: 모든 값을 0으로 만드는 행렬
+# 0행렬: 모든 값을 0으로 만드는 행렬
 [[0, 0],
- [0, 0]]
+ [0, 0]] → np.zeros(2, 2)
 ```
 
 ### 3-2. 변환 행렬 종류
@@ -160,7 +160,7 @@ M = [[2, 0],
      [0, 2]]
 
 v = (3, 2)
-v_new = M * v  # (6, 4) — 2배 확대
+v_new = M * v  # (6, 4) → 2배 확대
 ```
 
 #### 방향 뒤집기 (Reflection)
@@ -170,7 +170,7 @@ M = [[-1, 0],
      [ 0, 1]]
 
 v = (3, 2)
-v_new = M * v  # (-3, 2) — x축 기준 반전
+v_new = M * v  # (-3, 2) → x축 기준 반전
 ```
 
 #### 회전 (Rotation)
@@ -252,6 +252,30 @@ map → odom → base_link → sensor
 
 > 좌표 변환에는 방향이 있다.
 > 반대 방향으로 변환하려면 역변환이 필요하다.
+
+**예시 — 월드 좌표 → 로봇 좌표:**
+
+```python
+import math
+
+robot_pos = (2, 3)   # 로봇 위치 (map 기준)
+sensor_vec = (1, 0)  # 로봇 기준에서 본 장애물
+theta = math.pi / 2  # 로봇이 90도 회전
+
+# 회전 적용
+cos_t = math.cos(theta)
+sin_t = math.sin(theta)
+world_vec = (
+    cos_t * sensor_vec[0] - sin_t * sensor_vec[1],
+    sin_t * sensor_vec[0] + cos_t * sensor_vec[1]
+)
+
+# 최종 위치
+obstacle_world = (
+    robot_pos[0] + world_vec[0],
+    robot_pos[1] + world_vec[1]
+)
+```
 
 ### 4-2. 좌표축 기본 규칙 (REP-103)
 
