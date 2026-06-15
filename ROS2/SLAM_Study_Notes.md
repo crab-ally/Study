@@ -331,6 +331,9 @@ ROS2 시각화 도구
 
 SLAM 결과를 확인할 때 사용한다.
 
+- 2D Goal Pose: Nav2 목표 위치를 지정할 때 주로 사용하는 버튼
+- 2D Pose Estimate: AMCL 초기 위치를 지정할 때 주로 사용하는 버튼
+
 ---
 
 ## 자주 보는 항목
@@ -575,7 +578,7 @@ Adaptive Monte Carlo Localization
 ```text
 저장된 지도 로드
         ↓
-AMCL 실행
+AMCL 실행 (지도와 LaserScan 데이터 필요)
         ↓
 2D Pose Estimate
         ↓
@@ -588,6 +591,11 @@ LiDAR와 지도 매칭
 
 > 2D Pose Estimate: 로봇의 초기 위치와 방향을 지정하는 도구
 > 2D Goal Pose: Nav2에서 로봇에게 목표 위치와 방향을 지정하는 도구
+
+/initialpose: 로봇의 초기 위치를 알려주는 토픽
+→ RViz2에서 2D Pose Estimate 버튼을 누르면 내부적으로 /initialpose 메시지가 발행
+
+- 메시지 타입: `geometry_msgs/msg/PoseWithCovarianceStamped`
 
 ---
 

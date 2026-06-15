@@ -36,6 +36,12 @@
 
 ---
 
+### 2-1. mesh (.stl, .obj, .dae)
+
+로봇의 외형 파일
+
+---
+
 ## 3. `<option>` — 전역 물리 설정
 
 ```xml
@@ -342,12 +348,12 @@ mujoco.mj_step(model, data)
 ### 12-2. 이름 ↔ ID 변환
 
 ```python
-# name → id
+# name → id (실패 시 -1 반환)
 body_id     = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "body_name")
 actuator_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, "actuator_name")
 sensor_id   = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SENSOR, "sensor_name")
 
-# id → name
+# id → name (실패 시 None 반환)
 geom_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
 ```
 
@@ -370,6 +376,14 @@ mujoco.mj_resetData(model, data)    # data 초기화
 ### 12-4. model 속성
 
 ```python
+model.nbody         # body 개수
+model.ngeom         # geom 개수
+model.njnt          # joint 개수
+model.nactuator     # actuator 개수
+model.nsensor       # sensor 개수
+model.nsite         # site 개수
+model.ncam          # camera 개수
+model.nu            # 제어입력 개수
 model.nq            # qpos 원소 수 (위치 상태 변수 개수)
 model.nv            # qvel 원소 수 (속도 상태 변수 개수)
 model.opt.timestep  # 설정된 timestep 값
@@ -378,8 +392,21 @@ model.opt.timestep  # 설정된 timestep 값
 model.sensor_adr[sensor_id]   # sensordata 내 시작 인덱스
 model.sensor_dim[sensor_id]   # 해당 센서의 데이터 개수
 
+# 위치 데이터 인덱스 정보
+model.jnt_qposadr[joint_id]   # qpos 내 해당 joint의 시작 인덱스
+
 # 속도 데이터 인섹스 정보
 model.jnt_dofadr[joint_id]    # qvel 내 해당 joint의 시작 인덱스
+
+# 관절 타입 정보
+model.jnt_type[joint_id]
+
+# 관절 제한 범위
+model.jnt_range[joint_id]
+
+# 엑츄에이터
+model.actuator_ctrllimited[actuator_id]
+model.actuator_ctrlrange[actuator_id]   # [min, max ]
 ```
 
 ### 12-5. data 속성
@@ -392,11 +419,13 @@ data.ncon          # 현재 접촉 쌍의 수
 data.contact[index].geom1   # 접촉한 geom id (첫 번째)
 data.contact[index].geom2   # 접촉한 geom id (두 번째)
 
-data.xpos[body_id]      # body의 월드 좌표 [x, y, z]
-data.qpos               # 모든 joint 위치값 (상태)
-data.qvel               # 모든 joint 속도값
+data.xpos           # 모든 body의 월드 좌표 [x, y, z]
+data.qpos           # 모든 joint 위치값 (상태)
+data.qvel           # 모든 joint 속도값
+data.qacc           # 모든 joint 가속도값
+data.xquat          # 모든 body의 월드 쿼터니언 [qw, qx, qy, qz]
 
-data.sensordata         # 모든 센서 데이터 (1D 배열, 연속 저장)
+data.sensordata     # 모든 센서 데이터 (1D 배열, 연속 저장)
 ```
 
 ### 12-6. 값 할당
