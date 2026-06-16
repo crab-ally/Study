@@ -388,7 +388,7 @@ model.nq            # qpos 원소 수 (위치 상태 변수 개수)
 model.nv            # qvel 원소 수 (속도 상태 변수 개수)
 model.opt.timestep  # 설정된 timestep 값
 
-# 센서 데이터 인덱스 정보
+# 센서 데이터 인덱스 정보 
 model.sensor_adr[sensor_id]   # sensordata 내 시작 인덱스
 model.sensor_dim[sensor_id]   # 해당 센서의 데이터 개수
 
@@ -402,12 +402,16 @@ model.jnt_dofadr[joint_id]    # qvel 내 해당 joint의 시작 인덱스
 model.jnt_type[joint_id]
 
 # 관절 제한 범위
-model.jnt_range[joint_id]
+model.jnt_range[joint_id] # [min, max]
+model.jnt_limited[joint_id] # 0,1 반환
 
 # 엑츄에이터
 model.actuator_ctrllimited[actuator_id]
 model.actuator_ctrlrange[actuator_id]   # [min, max ]
+model.actuator_trnid # 액추에이터가 어떤 객체(joint, tendon 등)에 연결되어 있는지 나타내는 ID 정보
 ```
+
+> model.nu == model.actuator
 
 ### 12-5. data 속성
 
@@ -426,7 +430,15 @@ data.qacc           # 모든 joint 가속도값
 data.xquat          # 모든 body의 월드 쿼터니언 [qw, qx, qy, qz]
 
 data.sensordata     # 모든 센서 데이터 (1D 배열, 연속 저장)
+
+# 힘/토크
+data.qfrc_actuator  # 액추에이터(모터)가 생성한 힘/토크
+data.qfrc_bias      # 중력, 코리올리 힘, 원심력 등 동역학적 bias force
+data.qfrc_passive   # 스프링, 댐핑 등 수동(passive) 요소가 생성한 힘/토크
+data.qfrc_applied   # 사용자가 직접 적용한 외력/외부 토크
 ```
+
+> data.qvel.shape == data.qacc.shape == data.qfrc_actuator.shape == data.qfrc_bias.shape == data.qfrc_passive.shape == data.qfrc_applied.shape : 관절당 인덱스도 같음
 
 ### 12-6. 값 할당
 
