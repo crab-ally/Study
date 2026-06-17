@@ -399,7 +399,7 @@ model.jnt_qposadr[joint_id]   # qpos 내 해당 joint의 시작 인덱스
 model.jnt_dofadr[joint_id]    # qvel 내 해당 joint의 시작 인덱스
 
 # 관절 타입 정보
-model.jnt_type[joint_id]
+model.jnt_type[joint_id] # int enum으로 저장
 
 # 관절 제한 범위
 model.jnt_range[joint_id] # [min, max]
