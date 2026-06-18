@@ -72,9 +72,90 @@
 
 ## 3-0. 데이터 전처리
 
+데이터 품질을 높여 모델이 더 안정적으로 학습하도록 하기 위해서 수행하는 작업
+
+```text
+X와 y, train/test 분리
+      ↓
+학습 데이터에만 전처리 fit (데이터 누수 방지)
+      ↓
+학습 데이터와 테스트 데이터 transform
+      ↓
+모델 학습
+```
+
 1. 결측치 처리: 데이터 누락으로 인한 학습 오류 방지
+
+```python
+from sklearn.impute import SimpleImputer
+
+# 객체 생성 (mean: 평균값, median: 중앙값, most_frequent: 최빈값)
+imputer = SimpleImputer(strategy="mean")
+
+# fit(): 필요한 값 계산 + transform(): 데이터 변환
+X_filled = imputer.fit_transform(X)
+```
+
 2. 범주형 처리: 범주형 데이터를 수치형 데이터로 변환
+
+```python
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
+
+# 원-핫 인코딩: X의 범주형 변수
+encoder = OneHotEncoder(sparse_output=False)
+X_encoded = encoder.fit_transform(X)
+
+# 레이블 인코딩: y(정답 라벨)의 범주형 변수
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(y)
+```
+
 3. 스케일링: 변수 간 스케일을 통일하여 모델 학습 안정성 및 성능 향상
+
+```python
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+
+# 표준화(Standardization): 각 특성의 평균을 0, 표준편차를 1에 가깝게 변환
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 정규화(Normalization): 0~1 사이의 값으로 변환
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+```
+
+---
+
+### 컬럼 별 전처리와 파이프라인
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import Pipeline
+
+preprocessor = ColumnTransformer(
+    transformers = [
+        ("num", StandardScaler(), ["speed","temperature"]),
+        ("cat", OneHotEncoder(), ["mode"])
+    ]
+)
+
+# 파이프라인 생성 (전처리 + 모델을 하나로 묶어서 관리)
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("model", LogisticRegression())
+])
+
+# 학습 (전처리 + 모델 학습)
+pipeline.fit(X_train, y_train)
+
+# 예측
+y_pred = pipeline.predict(X_test)
+```
+
+---
 
 ## 3-1. 데이터 준비
 
@@ -302,7 +383,7 @@ model.fit(X_train, y_train)
 ```python
 from sklearn.tree import DecisionTreeClassifier
 
-model = DecisionTreeClassifier()
+model = DecisionTreeClassifier(max_depth=3) # 깊이 제한 (기본값: None)
 model.fit(X_train, y_train)
 ```
 
@@ -365,6 +446,9 @@ model1.fit(X_train, y_train)
 # 데이터 불균형 시 적은 클래스에 더 큰 중요도를 부여
 model2 = RandomForestClassifier(class_weight="balanced") 
 model2.fit(X_train, y_train)
+
+# n_estimators: 트리의 개수 (기본값: 100)
+model=RandomForestClassifier(n_estimators=100)
 ```
 
 장점
@@ -432,9 +516,9 @@ model.fit(X_train, y_train)
 
 ---
 
-# 6. 과적합 (Overfitting)
+# 6. 과적합 (Overfitting), 일반화 (Generalization)
 
-모델이 학습 데이터를 지나치게 외운 상태
+**과적합**: 모델이 학습 데이터를 지나치게 외운 상태
 
 ```text
 Train 성능 ↑
@@ -454,6 +538,8 @@ Test 성능 ↓
 - 모델 단순화
 - 정규화(Regularization)
 - 교차검증(Cross Validation)
+
+**일반화**: 학습하지 않은 새로운 데이터에 대해서도 좋은 성능을 내는 능력
 
 ---
 
@@ -545,5 +631,7 @@ print("Recall:", recall_score(y_test, pred))
 print("F1:", f1_score(y_test, pred))
 print(classification_report(y_test, pred)) # 지표를 한 번에 출력
 ```
+
+> model.score(X_test, y_test) : accuracy 출력
 
 ---
