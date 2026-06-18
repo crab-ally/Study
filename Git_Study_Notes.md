@@ -1,185 +1,190 @@
-# Git & GitHub
+# Git & GitHub 명령어 정리
 
 ## 작업 흐름
 
 ```
-작업 폴더 → (git add) → 스테이징 → (git commit) → 로컬 저장소 → (git push) → 원격 저장소
+작업 폴더 → (git add) → 스테이징 영역 → (git commit) → 로컬 저장소 → (git push) → 원격 저장소
 ```
 
 ---
 
-## 최초 설정
+## 1. 최초 설정
 
 ```bash
 git config --global user.name "이름"
 git config --global user.email "이메일"
 ```
 
-> ``--global`` : 이 PC 전체에 적용
+> `--global`: 이 PC에서 Git을 사용할 때 항상 적용되는 전역 설정
 
 ---
 
-## 로컬에 처음 폴더를 만들었을 때
+## 2. 저장소 시작하기
+
+### 로컬에서 새로 시작
 
 ```bash
-git init                          # 현재 폴더를 Git 관리 시작
-git add .                         # 현재 폴더의 모든 파일을 스테이징 영역에 올림
-git commit -m "커밋메시지"          # 로컬 저장소에 저장
-git remote add origin 원격저장소주소 # 원격 저장소 연결
-git branch -M main                 # 현재 브랜치 이름을 main 으로 변경
-git push -u origin main            # 원격 저장소에 업로드
+git init                              # 해당 폴더 Git 관리 시작
+git add 파일명                        # 특정 파일 스테이징
+git commit -m "커밋메시지"             # 로컬 저장소에 저장
+git remote add origin <원격저장소주소>  # 원격 저장소 연결
+git branch -M main                    # 브랜치명을 main으로 변경
+git push -u origin main               # 원격 저장소에 업로드
 ```
 
----
-
-## GitHub에서 가져오기
+### GitHub에서 가져오기
 
 ```bash
-git clone 원격저장소주소    # 새 폴더 생성 및 그 안에 원격 저장소 복제
-git clone 원격저장소주소 .  # 현재 폴더에 원격 저장소 복제 (폴더가 비어있어야 함)
-
-# pull = fetch + merge
-# 1. fetch  → 원격 최신 정보 가져오기
-# 2. merge  → 변경사항 병합
-git pull origin main    # 기존 폴더에 원격 가져오기
+git clone <원격저장소주소>     # 새 폴더 생성 + 복제
+git clone <원격저장소주소> .   # 현재(빈) 폴더에 복제
+git pull origin main         # 기존 폴더에 최신 내용 반영 (fetch + merge)
 ```
 
 ---
 
-## 임시 저장
+## 3. 브랜치
 
-현재 작업 중인 수정사항을 임시로 숨겨두는 기능
+커밋을 가리키는 포인터. 전환 시 작업 폴더가 해당 상태로 바뀜.
+
+
+**생성 + 이동**
 
 ```bash
-git stash                       # 저장
-git stash list                  # stash 목록 확인
-git stash pop                   # 최근 stash 복원 (적용 + 목록 삭제)
-git stash apply stash@{index}   # 특정 stash 복원 (목록 삭제 안됨)
-git stash drop                  # 최근 stash 삭제
-git stash drop stash@{index}    # 특정 stash 삭제
-git stash clear                 # 모든 stash 삭제
+git switch -c <브랜치명>    # 권장
+git checkout -b <브랜치명>  # 구버전
 ```
 
----
-
-## 브랜치
-
-> 브랜치는 파일 복사가 아니라 커밋을 가리키는 포인터입니다.  
-> 브랜치를 전환하면 작업 폴더가 해당 브랜치 상태로 바뀝니다.
-
-### 생성 · 이동
+**목록 확인**
 
 ```bash
-git switch -c 브랜치명      # 생성 후 이동 (권장)
-git checkout -b 브랜치명    # 생성 후 이동 (구버전)
+git branch        # 로컬 브랜치 목록
+git branch -r     # 원격 브랜치 목록
+git branch -a     # 전체(로컬+원격) 목록
 ```
 
-### 확인
+**삭제**
 
 ```bash
-git branch      # 로컬 브랜치 목록
-git branch -r   # 원격 브랜치 목록
-git branch -a   # 로컬 + 원격 전체
+git branch -d <브랜치명>             # 병합된 로컬 브랜치 삭제
+git branch -D <브랜치명>             # 로컬 강제 삭제
+git push origin --delete <브랜치명>  # 원격 브랜치 삭제
 ```
 
-### 병합 (main 기준)
+**원격 브랜치 생성**
 
 ```bash
-git switch main             # main으로 이동
-git pull origin main        # main 최신화
-git merge 브랜치명           # 브랜치 내용 병합
-git push origin main        # GitHub에 반영
+git push -u origin <브랜치명>  # 원격에 새 브랜치 생성 + push
 ```
 
-### 원격 브랜치 생성 및 push
+**병합 (main 기준)**
 
 ```bash
-git push -u origin 브랜치명 # 원격 브랜치 생성
+git switch main        # main 브랜치로 이동
+git pull origin main   # main 브랜치 업데이트
+git merge <브랜치명>    # 병합
+git push origin main   # 원격 저장소에 업로드
 ```
 
-### 원격 브랜치 가져오기 (로컬에 해당 브랜치가 없을 때)
+**로컬에 없는 원격 브랜치 가져오기**
 
 ```bash
-git fetch           # 원격 정보 가져오기
-git switch 브랜치명
+git fetch             # 원격 최신 내용 가져옴 (로컬 반영 X)
+git switch <브랜치명>
 ```
 
-### 삭제
+**로컬에서 삭제된 원격 브랜치 정보 정리**
 
 ```bash
-git branch -d 브랜치명              # 로컬 삭제 (병합된 경우)
-git branch -D 브랜치명              # 로컬 강제 삭제
-git push origin --delete 브랜치명   # 원격 삭제
-```
-
-### 로컬에 삭제된 원격 브랜치 정보가 남아있는 경우
-
-```bash
-# fetch  → 원격 최신 정보 가져오기
-# --prune  → 없어진 원격 브랜치 정보 정리
 git fetch --prune
 ```
 
 ---
 
-## 상태 확인
+## 4. 임시 저장 (stash)
+
+현재 작업 중인 수정사항을 임시로 숨겨두는 기능
 
 ```bash
-git status                  # 수정·스테이징·새 파일, 현재 브랜치 확인
-git log --oneline --graph   # 커밋 기록을 한 줄 + 그래프로 보기 (종료 q)
-git diff                    # add 전 변경사항 확인
-git diff --staged           # add 후 변경사항 확인
+git stash                       # 저장
+git stash list                  # 목록 확인
+git stash pop                   # 최근 복원 (적용 + 목록 삭제)
+git stash apply stash@{index}   # 특정 복원 (목록 유지)
+git stash drop                  # 최근 삭제
+git stash drop stash@{index}    # 특정 삭제
+git stash clear                 # 전체 삭제
 ```
 
----
-
-## 되돌리기
-
-### 파일 내용 되돌리기
+## 5. 상태 확인
 
 ```bash
-# 특정 파일의 수정사항 되돌리기 (로컬 브랜치의 마지막 커밋 상태로)
-git restore 파일명
+git status                  # 수정/스테이징/새 파일, 현재 브랜치
+git log --oneline --graph   # 커밋 기록 (종료: q)
+git diff                    # add 전 변경사항
+git diff --staged           # add 후 변경사항
+```
 
-# 로컬 브랜치의 모든 파일을 원격 저장소 상태로 되돌리기
-git fetch origin
-git reset --hard origin/브랜치명
+## 6. 되돌리기
+
+### 파일 단위
+
+```bash
+git restore <파일명>                                      # 마지막 커밋 상태로 되돌리기
+git fetch origin && git reset --hard origin/<브랜치명>    # 전체 파일을 원격 상태로
 ```
 
 ### add 취소
 
 ```bash
-git restore --staged 파일명 # 스테이징만 취소 (파일 내용 유지)
-git reset HEAD 파일명       # 위와 동일 (구버전)
+git restore --staged <파일명>   # 스테이징만 취소 (내용 유지)
+git reset HEAD <파일명>         # 구버전
 ```
 
 ### commit 취소
 
 ```bash
-git reset --soft HEAD~1     # 커밋 취소, 스테이징 유지
-git reset --mixed HEAD~1    # 커밋 + 스테이징 취소
-git reset --hard HEAD~1     # 커밋 + 스테이징 + 파일 전부 이전 커밋 상태로 되돌리기
+git reset --soft HEAD~1    # 커밋 취소
+git reset --mixed HEAD~1   # 커밋 + 스테이징 취소
+git reset --hard HEAD~1    # 커밋 + 스테이징 + 작업 내용 취소
 ```
 
-### 특정 commit의 변경사항을 취소하는 새로운 commit 생성
+### 안전하게 취소 (새 커밋 생성)
 
 기존 commit을 삭제하는 것이 아니라, 변경사항을 취소하는 새로운 commit을 생성한다.
 
 ```bash
-git revert HEAD           # 최근 commit 취소
-git revert HEAD~1         # 최근 commit의 이전 commit 취소
-git revert [commit_hash]  # 특정 commit 취소
+git revert HEAD            # 최근 커밋 취소
+git revert HEAD~1          # 최근 이전 커밋 취소
+git revert <commit_hash>   # 특정 커밋 취소
 ```
+> commit hash는 `git log --oneline --graph`로 확인
 
-> commit hash는 `git log --oneline --graph`로 확인 가능
+## 7. 원격 저장소 관리
+
+```bash
+git remote -v                      # 연결된 원격 저장소 목록
+git remote show origin             # 상세 정보
+git remote set-url origin <새URL>  # 주소 변경
+git remote remove origin           # 연결 해제
+```
 
 ---
 
-## 원격 저장소 관리
+## 8. 원격과 로컬
+
+### rebase
 
 ```bash
-git remote -v                           # 연결된 원격 저장소 목록
-git remote show origin                  # 원격 저장소 상세 정보
-git remote set-url origin 새URL         # 원격 저장소 주소 변경
-git remote remove origin                # 원격 저장소 연결 해제
+# 기존
+원격: A - B - C
+로컬: A - B - D
+
+git pull origin main
+결과: A - B - C - B' - D'
+
+# rebase 사용
+원격: A - B - C
+로컬: A - B - D
+
+git pull --rebase origin main
+결과: A - B - C - D
 ```
