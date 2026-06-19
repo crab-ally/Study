@@ -89,7 +89,7 @@ y = 합격여부
 import pandas as pd
 from sklearn.datasets import make_classification
 
-# 기존 데이터
+# 기존 데이터 - Scikit-Learn의 입력 데이터는 2차원 형태여야 한다
 df = pd.DataFrame(data)
 X = df[["study_hours", "attendance", "assignment"]]
 y = df["pass"]
@@ -144,7 +144,8 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
     test_size=0.2,   # 20% 평가용
-    random_state=42  # 항상 같은 방식으로 분리 (재현성)
+    random_state=42, # 항상 같은 방식으로 분리 (재현성)
+    stratify=y       # 클래스 비율 유지하면서 분리
 )
 ```
 
@@ -186,9 +187,10 @@ from sklearn.preprocessing import LabelEncoder
 encoder = OneHotEncoder(sparse_output=False)
 X_encoded = encoder.fit_transform(X)
 
-# 레이블 인코딩: y(정답 라벨)의 범주형 변수
+# 라벨 인코딩: y(정답 라벨)의 범주형 변수 [자동 사전식 정렬]
 encoder = LabelEncoder()
 y_encoded = encoder.fit_transform(y)
+y_decoded = encoder.inverse_transform(y_encoded) # 디코딩
 ```
 
 3. 스케일링: 변수 간 스케일을 통일하여 모델 학습 안정성 및 성능 향상
@@ -228,10 +230,10 @@ pipeline = Pipeline([
     ("model", LogisticRegression())
 ])
 
-# 학습 (전처리 + 모델 학습)
+# 학습 (파이프라인 호출)
 pipeline.fit(X_train, y_train)
 
-# 예측
+# 예측 (파이프라인 호출)
 y_pred = pipeline.predict(X_test)
 ```
 
@@ -292,7 +294,7 @@ print("클래스 이름:", iris.target_names)
 ```python
 from sklearn.metrics import mean_absolute_error
 
-mae = mean_absolute_error(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred) # 2.13 → 약 2.13% 정도 틀림
 ```
 
 ### 평균제곱오차 (Mean Squared Error, MSE)
@@ -344,6 +346,21 @@ rmse = root_mean_squared_error(y_test, y_pred)
 
 ## 분류모델
 
+### 기본 명령어
+
+```python
+# 학습된 클래스 확인
+model.classes_
+
+# 예측 클래스 2차원 배열 반환
+model.predict(X_test)
+
+# 예측 클래스별 확률 확인
+model.predict_proba(X_test)
+```
+
+---
+
 ### 5-1. Logistic Regression
 
 입력을 확률(0~1)로 변환한 뒤 분류
@@ -393,9 +410,12 @@ model.fit(X_train, y_train)
 
 ```python
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_text
 
 model = DecisionTreeClassifier(max_depth=3) # 깊이 제한 (기본값: None)
 model.fit(X_train, y_train)
+
+print(export_text(model, feature_names=list(X.columns))) # 트리 구조 출력
 ```
 
 장점
@@ -564,6 +584,9 @@ from sklearn.linear_model import LinearRegression
 
 model = LinearRegression()
 model.fit(X_train, y_train)
+
+print("기울기(계수):", model.coef_)
+print("절편:", model.intercept_)
 ```
 
 장점
@@ -636,7 +659,35 @@ model.fit(X_train,y_train)
 
 ---
 
-### 5-11. Decision Tree Regressor
+### 5-11. Polynomial Regression
+
+선형 회귀와 다항식을 결합한 모델
+
+```python
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+# x → [x, x²] 변환 / degree: 다항식 차수
+poly = PolynomialFeatures(degree=2)
+X_poly = poly.fit_transform(X)
+
+# y = b0 + b1·x + b2·x²
+model.fit(X_poly, y)
+```
+
+장점
+
+- 비선형(곡선) 관계를 표현 가능
+- 구현이 간단함 (PolynomialFeatures + LinearRegression)
+
+단점
+
+- 차수(degree)가 너무 크면 과적합(Overfitting) 발생
+- 특성 수가 급격히 증가하여 계산량 증가
+
+---
+
+### 5-12. Decision Tree Regressor
 
 질문을 따라가며 숫자값을 예측하는 나무 구조 회귀 모델
 
@@ -663,7 +714,7 @@ y_pred = model.predict(X_test)
 
 ---
 
-### 5-12. Random Forest Regressor
+### 5-13. Random Forest Regressor
 
 여러 개의 결정 트리를 학습한 후, 그 결과들을 평균내어 최종 예측값을 도출하는 모델
 
@@ -689,7 +740,7 @@ y_pred = model.predict(X_test)
 
 ---
 
-### 5-13. Gradient Boosting Regressor
+### 5-14. Gradient Boosting Regressor
 
 이전 트리의 오차를 보완하는 방식으로 순차적으로 트리를 학습하는 앙상블 회귀 모델
 
@@ -732,6 +783,13 @@ model.fit(X_train, y_train)
 - FP (False Positive): 실제 부정 → 긍정 예측 (오탐, Type 1 Error)
 - FN (False Negative): 실제 긍정 → 부정 예측 (미탐, Type 2 Error)
 
+```python
+from sklearn.metrics import confusion_matrix
+
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+```
+
 ---
 
 ### 6-2. 분류 평가지표
@@ -770,24 +828,26 @@ print("ROC-AUC:", roc_auc_score(y_test, prob))
 ```
 
 > model.score(X_test, y_test) : accuracy 출력
-> model.predict(): 클래스 배열 반환
-> model.predict_proba(): 클래스별 확률 배열 반환
 
 ---
 
 ## 회귀
 
-### 6-4. 회귀 평가지표 (R²)
+### 6-4. 회귀 평가지표
 
 - R² Score (결정계수): 모델이 목표값의 변동을 얼마나 잘 설명하는가
 
 ```python
 from sklearn.metrics import r2_score
 
-r2=r2_score(y_test,y_pred) # (0 ~ 1) - 1에 가까울수록 좋음
+r2 = r2_score(y_test, y_pred) # (0 ~ 1) - 1에 가까울수록 좋음
 ```
 
 > model.score(X_test, y_test) : R² Score 출력
+
+- mae
+- mse
+- rmse
 
 ---
 

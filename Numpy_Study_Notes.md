@@ -222,4 +222,37 @@ np.random.randint(low, high, size)
 
 # 0 ~ 1 사이 실수 랜덤값
 np.random.rand(size)
+
+# 평균이 loc, 표준편차가 scale인 정규분포를 따르는 실수
+np.random.normal(loc, scale, size)
+```
+
+---
+
+**flatten()**
+
+```python
+import numpy as np
+
+# 2차원 배열
+arr = np.array([[1, 2, 3], [4, 5, 6]])
+
+# 1차원으로 변환
+flat_arr = arr.flatten()
+print(flat_arr)  # [1 2 3 4 5 6]
+```
+
+**reshape()**
+
+```python
+import numpy as np
+
+# 1차원 배열
+arr = np.arange(6)  # [0 1 2 3 4 5]
+
+# 2차원으로 변환 (-1: 자동으로 계산)
+reshaped_arr = arr.reshape(2, -1)
+print(reshaped_arr)
+# [[0 1 2]
+#  [3 4 5]]
 ```
