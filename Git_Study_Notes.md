@@ -128,8 +128,8 @@ git diff --staged           # add 후 변경사항
 ### 파일 단위
 
 ```bash
-git restore <파일명>                                      # 마지막 커밋 상태로 되돌리기
-git fetch origin && git reset --hard origin/<브랜치명>    # 전체 파일을 원격 상태로
+git restore <파일명>                                    # 마지막 로컬 커밋 상태로 되돌리기
+git fetch origin && git reset --hard origin/<브랜치명>  # 전체 파일을 원격 상태로
 ```
 
 ### add 취소

@@ -70,93 +70,6 @@
 
 # 3. 데이터
 
-## 3-0. 데이터 전처리
-
-데이터 품질을 높여 모델이 더 안정적으로 학습하도록 하기 위해서 수행하는 작업
-
-```text
-X와 y, train/test 분리
-      ↓
-학습 데이터에만 전처리 fit (데이터 누수 방지)
-      ↓
-학습 데이터와 테스트 데이터 transform
-      ↓
-모델 학습
-```
-
-1. 결측치 처리: 데이터 누락으로 인한 학습 오류 방지
-
-```python
-from sklearn.impute import SimpleImputer
-
-# 객체 생성 (mean: 평균값, median: 중앙값, most_frequent: 최빈값)
-imputer = SimpleImputer(strategy="mean")
-
-# fit(): 필요한 값 계산 + transform(): 데이터 변환
-X_filled = imputer.fit_transform(X)
-```
-
-2. 범주형 처리: 범주형 데이터를 수치형 데이터로 변환
-
-```python
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-
-# 원-핫 인코딩: X의 범주형 변수
-encoder = OneHotEncoder(sparse_output=False)
-X_encoded = encoder.fit_transform(X)
-
-# 레이블 인코딩: y(정답 라벨)의 범주형 변수
-encoder = LabelEncoder()
-y_encoded = encoder.fit_transform(y)
-```
-
-3. 스케일링: 변수 간 스케일을 통일하여 모델 학습 안정성 및 성능 향상
-
-```python
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
-
-# 표준화(Standardization): 각 특성의 평균을 0, 표준편차를 1에 가깝게 변환
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-# 정규화(Normalization): 0~1 사이의 값으로 변환
-scaler = MinMaxScaler()
-X_scaled = scaler.fit_transform(X)
-```
-
----
-
-### 컬럼 별 전처리와 파이프라인
-
-```python
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.pipeline import Pipeline
-
-preprocessor = ColumnTransformer(
-    transformers = [
-        ("num", StandardScaler(), ["speed","temperature"]),
-        ("cat", OneHotEncoder(), ["mode"])
-    ]
-)
-
-# 파이프라인 생성 (전처리 + 모델을 하나로 묶어서 관리)
-pipeline = Pipeline([
-    ("preprocessor", preprocessor),
-    ("model", LogisticRegression())
-])
-
-# 학습 (전처리 + 모델 학습)
-pipeline.fit(X_train, y_train)
-
-# 예측
-y_pred = pipeline.predict(X_test)
-```
-
----
-
 ## 3-1. 데이터 준비
 
 예시 데이터
@@ -237,9 +150,94 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 ---
 
-## 3-3. 데이터 증강
+## 3-3. 데이터 전처리
 
-### SMOTE (데이터 증강)
+데이터 품질을 높여 모델이 더 안정적으로 학습하도록 하기 위해서 수행하는 작업
+
+```text
+X와 y, train/test 분리
+      ↓
+학습 데이터에만 전처리 fit (데이터 누수 방지)
+      ↓
+학습 데이터와 테스트 데이터 transform
+      ↓
+모델 학습
+```
+
+1. 결측치 처리: 데이터 누락으로 인한 학습 오류 방지
+
+```python
+from sklearn.impute import SimpleImputer
+
+# 객체 생성 (mean: 평균값, median: 중앙값, most_frequent: 최빈값)
+imputer = SimpleImputer(strategy="mean")
+
+# fit(): 필요한 값 계산 + transform(): 데이터 변환
+X_filled = imputer.fit_transform(X)
+```
+
+2. 범주형 처리: 범주형 데이터를 수치형 데이터로 변환
+
+```python
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
+
+# 원-핫 인코딩: X의 범주형 변수
+encoder = OneHotEncoder(sparse_output=False)
+X_encoded = encoder.fit_transform(X)
+
+# 레이블 인코딩: y(정답 라벨)의 범주형 변수
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(y)
+```
+
+3. 스케일링: 변수 간 스케일을 통일하여 모델 학습 안정성 및 성능 향상
+
+```python
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+
+# 표준화(Standardization): 각 특성의 평균을 0, 표준편차를 1에 가깝게 변환
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 정규화(Normalization): 0~1 사이의 값으로 변환
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+```
+
+---
+
+## 3-4. 컬럼 별 전처리와 파이프라인
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import Pipeline
+
+preprocessor = ColumnTransformer(
+    transformers = [
+        ("num", StandardScaler(), ["speed","temperature"]),
+        ("cat", OneHotEncoder(), ["mode"])
+    ]
+)
+
+# 파이프라인 생성 (전처리 + 모델을 하나로 묶어서 관리)
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("model", LogisticRegression())
+])
+
+# 학습 (전처리 + 모델 학습)
+pipeline.fit(X_train, y_train)
+
+# 예측
+y_pred = pipeline.predict(X_test)
+```
+
+---
+
+## 3-5. 데이터 증강 (SMOTE)
 
 소수 클래스의 가상 데이터를 생성하여 클래스 불균형 문제를 완화하는 오버샘플링 기법
 
@@ -253,7 +251,7 @@ X_res, y_res = smote.fit_resample(X_train, y_train)
 
 ---
 
-## 3-4. Scikit-Learn 내장 데이터셋
+## 3-6. Scikit-Learn 내장 데이터셋
 
 교육용 데이터셋
 
@@ -283,7 +281,7 @@ print("클래스 이름:", iris.target_names)
 
 ---
 
-## 4-1. 손실 함수 (Loss Function)
+## 4-1. 손실 함수
 
 모델이 얼마나 틀렸는지 숫자로 계산하는 함수
 
@@ -343,101 +341,6 @@ rmse = root_mean_squared_error(y_test, y_pred)
 ---
 
 # 5. 대표 알고리즘
-
-## 용어
-
-### 하이퍼파라미터
-
-모델이 학습하기 전에 사람이 정해주는 설정값
-
-```text
-KNN의 n_neighbors
-DecisionTree의 max_depth
-RandomForest의 n_estimators
-SVM의 C, kernel
-GradientBoosting의 learning_rate
-```
-
-### GridSearchCV (하이퍼파라미터 튜닝)
-
-여러 하이퍼파라미터 조합을 자동으로 비교
-
-```python
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
-
-# 탐색할 하이퍼파라미터
-param_grid= {
-    "n_estimators": [50,100,200],
-    "max_depth": [3,5,None]
-}
-
-grid=GridSearchCV(
-    RandomForestClassifier(random_state=42),
-    param_grid=param_grid,
-    cv=5
-)
-
-grid.fit(X_train,y_train)
-
-best_model = grid.best_estimator_ # 최적의 파라미터로 학습된 모델
-
-print(grid.best_params_)  # 최적의 하이퍼파라미터 조합
-```
-
----
-
-### Pipeline + GridsearchCV
-
-```python
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-
-# 컬럼별 전처리
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("num", StandardScaler(), ["speed", "temperature"]),
-        ("cat", OneHotEncoder(), ["mode"])
-    ]
-)
-
-# 파이프라인 생성 (전처리 + 모델)
-pipeline = Pipeline([
-    ("preprocessor", preprocessor),
-    ("model", RandomForestClassifier(random_state=42))
-])
-
-# 탐색할 하이퍼파라미터
-# Pipeline 내부의 특정 단계 파라미터를 GridSearchCV에서 조절하려면 "단계이름__파라미터이름" 형식으로 지정
-param_grid = {
-    "model__n_estimators": [50, 100, 200],
-    "model__max_depth": [3, 5, None]
-}
-
-# GridSearchCV
-grid = GridSearchCV(
-    estimator=pipeline,
-    param_grid=param_grid,
-    cv=5
-)
-
-# 학습 (전처리 + 교차 검증 + 최적 모델 학습)
-grid.fit(X_train, y_train)
-
-# 최적의 하이퍼파라미터
-print(grid.best_params_)
-
-# 최적의 모델
-best_model = grid.best_estimator_
-
-# 예측
-y_pred = best_model.predict(X_test)
-```
-
----
 
 ## 분류모델
 
@@ -610,14 +513,15 @@ y_pred = model.predict(X_test)
 ```
 
 장점
-- 적은 데이터에서도 높은 분류 성능을 보이는 경우가 많음
+
+- 적은 데이터에서도 성능 좋음
 - 고차원 데이터(특성이 많은 데이터)에 강함
 - 커널 함수를 통해 비선형 문제도 해결 가능
-- 과적합(Overfitting)에 비교적 강한 편
 
 단점
+
 - 데이터 양이 많아질수록 학습 속도가 느려짐
-- 파라미터(`C`, `kernel`, `gamma`) 설정에 따라 성능 차이가 큼
+- 파라미터 튜닝 필요
 - 모델의 결과를 해석하기 어려움
 - 특성 스케일에 민감 → 스케일링 필요
 
@@ -626,7 +530,7 @@ y_pred = model.predict(X_test)
 ### 5-7. GaussianNB
 
 각 클래스에 속할 확률을 계산한 뒤, 가장 높은 확률을 가진 클래스로 데이터를 분류
-(각 특성의 값이 정규분포를 따른다고 가정)
+(각 특성의 값이 독립적이며 정규분포를 따른다고 가정)
 
 ```python
 from sklearn.naive_bayes import GaussianNB
@@ -637,21 +541,21 @@ y_pred = model.predict(X_test)
 ```
 
 장점
+
 - 학습 및 예측 속도가 빠름
 - 적은 데이터에서도 안정적인 성능을 보임
 - 고차원 데이터 처리에 유리함
-- 텍스트 분류와 같은 문제에서 효과적임
 
 단점
-- 특성 간 독립성 가정이 실제 데이터와 맞지 않을 수 있음
-- 데이터가 정규분포를 따르지 않으면 성능이 저하될 수 있음
+
+- 가정(특성 간 독립성, 데이터가 정규분포를 따름)이 실제 데이터와 맞지 않으면 성능 저하
 - 복잡한 데이터 패턴을 표현하는 데 한계가 있음
 
 ---
 
 ## 회귀 모델
 
-### 5-1. Linear Regression
+### 5-8. Linear Regression
 
 입력(X)과 출력(y)의 관계를 직선(선형식)으로 모델링하여 숫자를 예측
 
@@ -676,7 +580,7 @@ model.fit(X_train, y_train)
 
 ---
 
-### 5-2. Ridge Regression
+### 5-9. Ridge Regression
 
 선형 회귀에 L2 규제를 추가해 과적합을 줄이는 모델
 
@@ -688,20 +592,21 @@ model.fit(X_train,y_train)
 ```
 
 장점
-- 과적합(Overfitting)을 줄일 수 있음
-- 다중공선성(Multicollinearity)이 있는 데이터에서 안정적인 성능을 보임
+
+- 과적합을 줄일 수 있음
 - 모든 특성을 유지하면서 계수의 크기를 조절함
 - 일반 선형회귀보다 예측 성능이 향상되는 경우가 많음
 
 단점
+
 - 불필요한 특성의 계수를 0으로 만들지 못함
-- `alpha` 값에 따라 성능 차이가 커질 수 있어 튜닝이 필요함
+- 하이퍼파라미터 튜닝 필요
 - 선형 관계를 가정하므로 복잡한 비선형 패턴을 잘 표현하지 못함
 - 모델 해석이 일반 선형회귀보다 다소 어려워질 수 있음
 
 ---
 
-### 5-3. Lasso Regression
+### 5-10. Lasso Regression
 
 선형 회귀에 L1 규제를 추가하여 과적합을 줄이고,
 불필요한 변수를 제거해 모델을 단순화하는 모델
@@ -714,17 +619,15 @@ model.fit(X_train,y_train)
 ```
 
 장점
-- 불필요한 특성의 계수를 0으로 만들어 특성을 제거하는 효과가 있음 → 모델 해석 용이
+
+- 불필요한 특성의 계수를 0으로 만들어 특성 제거 효과 (Feature Selection) → 모델 해석 용이
 - Ridge 회귀보다 과적합을 더 효과적으로 줄일 수 있음
-- 특성 선택(Feature Selection) 기능이 내장되어 있음
 
 단점
-- 데이터가 많거나 특성이 많으면 학습 시간이 오래 걸릴 수 있음
-- 특성 간 상관관계가 높을 때 모든 특성을 0으로 만들 수 있음
-- alpha 값에 따라 성능 차이가 클 수 있어 튜닝이 필요함
-- 선형 관계를 가정하므로 복잡한 비선형 패턴을 잘 표현하지 못함
 
----
+- 상관관계가 높은 특성들 중 일부를 임의로 제거할 수 있음
+- 하이퍼파라미터 튜닝 필요
+- 선형 관계를 가정하므로 복잡한 비선형 패턴을 잘 표현하지 못함
 
 #### L1, L2 규제
 
@@ -733,7 +636,7 @@ model.fit(X_train,y_train)
 
 ---
 
-### 5-4. Decision Tree
+### 5-11. Decision Tree Regressor
 
 질문을 따라가며 숫자값을 예측하는 나무 구조 회귀 모델
 
@@ -746,20 +649,21 @@ y_pred = model.predict(X_test)
 ```
 
 장점
+
 - 모델 구조를 시각화할 수 있어 해석이 쉬움
 - 데이터의 비선형 관계를 잘 학습함
 - 데이터 전처리(정규화, 스케일링)가 거의 필요 없음
 - 특성 간의 복잡한 상호작용을 표현할 수 있음
 
 단점
-- 과적합(Overfitting)이 발생하기 쉬움
+
+- 과적합 발생 쉬움
 - 데이터가 조금만 바뀌어도 모델 구조가 크게 달라질 수 있음
 - 깊이가 깊어질수록 일반화 성능이 떨어질 수 있음
-- 단일 모델의 예측 성능은 Random Forest나 Gradient Boosting보다 낮은 경우가 많음
 
 ---
 
-### 5-5. Random Forest Regressor
+### 5-12. Random Forest Regressor
 
 여러 개의 결정 트리를 학습한 후, 그 결과들을 평균내어 최종 예측값을 도출하는 모델
 
@@ -772,20 +676,20 @@ y_pred = model.predict(X_test)
 ```
 
 장점
+
 - 단일 결정 트리의 과적합 문제를 해결하여 일반화 성능이 우수함
 - 다양한 데이터 패턴을 학습할 수 있어 예측 성능이 좋음
 - 특성 중요도(Feature Importance)를 제공하여 모델 해석이 가능함
 - 병렬 처리가 가능하여 학습 속도가 빠름
 
 단점
+
 - 모델이 복잡하여 단일 결정 트리보다 해석이 어려움
 - 메모리 사용량이 비교적 많음
-- 데이터가 매우 클 경우 학습 시간이 오래 걸릴 수 있음
-- Random Forest 자체도 과적합이 발생할 수 있음
 
 ---
 
-### 5-6. Gradient Boosting Regressor
+### 5-13. Gradient Boosting Regressor
 
 이전 트리의 오차를 보완하는 방식으로 순차적으로 트리를 학습하는 앙상블 회귀 모델
 
@@ -797,20 +701,97 @@ model.fit(X_train, y_train)
 ```
 
 장점
+
 - 높은 예측 성능을 보이는 경우가 많음
 - 비선형 데이터와 복잡한 패턴을 잘 학습함
-- 여러 개의 약한 트리를 결합하여 과적합을 줄일 수 있음
 - 특성 스케일링(정규화)이 필요하지 않음
 
 단점
+
 - 학습 속도가 비교적 느림
 - 하이퍼파라미터 튜닝이 중요함
-- 데이터가 매우 많을 경우 학습 시간이 길어질 수 있음
 - 모델 구조가 복잡하여 해석이 어려움
 
 ---
 
-# 6. 과적합 (Overfitting), 일반화 (Generalization)
+# 6. 평가 (Evaluation)
+
+## 분류
+
+### 6-1. Confusion Matrix (혼동 행렬)
+
+분류 모델의 성능을 시각적으로 확인하는 표
+
+| 실제 \ 예측 | 긍정 | 부정 |
+|---|---|---|
+| 긍정 | TP | FN  |
+| 부정 | FP | TN |
+
+- TP (True Positive): 실제 긍정 → 긍정 예측 (정답)
+- TN (True Negative): 실제 부정 → 부정 예측 (정답)
+- FP (False Positive): 실제 부정 → 긍정 예측 (오탐, Type 1 Error)
+- FN (False Negative): 실제 긍정 → 부정 예측 (미탐, Type 2 Error)
+
+---
+
+### 6-2. 분류 평가지표
+
+- Accuracy (정확도): 전체 중에서 맞춘 비율 `(TP + TN) / (TP + TN + FP + FN)`
+- Precision (정밀도): 긍정으로 예측한 것 중에서 실제 긍정인 비율 `TP / (TP + FP)`
+- Recall (재현율): 실제 긍정인 것 중에서 긍정으로 예측한 비율 `TP / (TP + FN)`
+- F1-Score (F1 점수): 정밀도와 재현율의 조화평균 `2 * (Precision * Recall) / (Precision + Recall)`
+- ROC-AUC: 여러 임계값에서 양성과 음성을 구분하는 모델의 능력을 평가하는 지표
+
+---
+
+### 6-3. 분류 평가 코드
+
+```python
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report,
+    roc_auc_score
+)
+
+pred = model.predict(X_test) # 반환값: 배열
+
+print("Accuracy:", accuracy_score(y_test, pred))
+print("Precision:", precision_score(y_test, pred))
+print("Recall:", recall_score(y_test, pred))
+print("F1:", f1_score(y_test, pred))
+print(classification_report(y_test, pred)) # 지표를 한 번에 출력
+
+# 확률값 필요!
+prob = model.predict_proba(X_test)[:, 1] # 클래스 1일 확률만 추출
+print("ROC-AUC:", roc_auc_score(y_test, prob))
+```
+
+> model.score(X_test, y_test) : accuracy 출력
+> model.predict(): 클래스 배열 반환
+> model.predict_proba(): 클래스별 확률 배열 반환
+
+---
+
+## 회귀
+
+### 6-4. 회귀 평가지표 (R²)
+
+- R² Score (결정계수): 모델이 목표값의 변동을 얼마나 잘 설명하는가
+
+```python
+from sklearn.metrics import r2_score
+
+r2=r2_score(y_test,y_pred) # (0 ~ 1) - 1에 가까울수록 좋음
+```
+
+> model.score(X_test, y_test) : R² Score 출력
+
+---
+
+# 7. 과적합 (Overfitting), 일반화 (Generalization)
 
 **과적합**: 모델이 학습 데이터를 지나치게 외운 상태
 
@@ -837,7 +818,7 @@ Test 성능 ↓
 
 ---
 
-## 6-1. 정규화 (Regularization)
+## 7-1. 정규화 (Regularization)
 
 가중치(파라미터)가 지나치게 커지는 것을 막기 위해 패널티를 부여
 
@@ -858,7 +839,7 @@ Test 성능 ↓
 
 ---
 
-## 6-2. 교차검증 (Cross Validation)
+## 7-2. 교차검증 (Cross Validation)
 
 학습 데이터를 여러 번 나눠서 학습과 평가를 반복
 
@@ -885,80 +866,96 @@ scores = cross_val_score(model, X, y, cv=5) # cv: 폴드 개수 (기본값: 5)
 
 ---
 
-# 7. 평가 (Evaluation)
+## 7-3. 하이퍼파라미터 튜닝
 
-## 분류
+### 하이퍼파라미터
 
-### 7-1. Confusion Matrix (혼동 행렬)
+모델이 학습하기 전에 사람이 정해주는 설정값
 
-분류 모델의 성능을 시각적으로 확인하는 표
+```text
+KNN의 n_neighbors
+DecisionTree의 max_depth
+RandomForest의 n_estimators
+SVM의 C, kernel
+GradientBoosting의 learning_rate
+```
 
-| 실제 \ 예측 | 긍정 | 부정 |
-|---|---|---|
-| 긍정 | TP | FN  |
-| 부정 | FP | TN |
+### GridSearchCV
 
-- TP (True Positive): 실제 긍정 → 긍정 예측 (정답)
-- TN (True Negative): 실제 부정 → 부정 예측 (정답)
-- FP (False Positive): 실제 부정 → 긍정 예측 (오탐, Type 1 Error)
-- FN (False Negative): 실제 긍정 → 부정 예측 (미탐, Type 2 Error)
-
----
-
-### 7-2. 평가지표
-
-- Accuracy (정확도): 전체 중에서 맞춘 비율 `(TP + TN) / (TP + TN + FP + FN)`
-- Precision (정밀도): 긍정으로 예측한 것 중에서 실제 긍정인 비율 `TP / (TP + FP)`
-- Recall (재현율): 실제 긍정인 것 중에서 긍정으로 예측한 비율 `TP / (TP + FN)`
-- F1-Score (F1 점수): 정밀도와 재현율의 조화평균 `2 * (Precision * Recall) / (Precision + Recall)`
-- ROC-AUC: 여러 임계값에서 양성과 음성을 구분하는 모델의 능력을 평가하는 지표
-
----
-
-#### 평가 코드
+여러 하이퍼파라미터 조합을 자동으로 비교
 
 ```python
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    classification_report.
-    roc_auc_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+
+# 탐색할 하이퍼파라미터
+param_grid= {
+    "n_estimators": [50,100,200],
+    "max_depth": [3,5,None]
+}
+
+grid=GridSearchCV(
+    RandomForestClassifier(random_state=42),
+    param_grid=param_grid,
+    cv=5
 )
 
-pred = model.predict(X_test) # 반환값: 배열
+grid.fit(X_train,y_train)
 
-print("Accuracy:", accuracy_score(y_test, pred))
-print("Precision:", precision_score(y_test, pred))
-print("Recall:", recall_score(y_test, pred))
-print("F1:", f1_score(y_test, pred))
-print(classification_report(y_test, pred)) # 지표를 한 번에 출력
+best_model = grid.best_estimator_ # 최적의 파라미터로 학습된 모델
 
-# 확률값 필요!
-prob = model.predict_proba(X_test)[:, 1] # 클래스 1일 확률만 추출
-print("ROC-AUC:", roc_auc_score(y_test, prob))
+print(grid.best_params_)  # 최적의 하이퍼파라미터 조합
 ```
 
-> model.score(X_test, y_test) : accuracy 출력  
-> model.predict(): 클래스 배열 반환  
-> model.predict_proba(): 클래스별 확률 배열 반환  
-
----
-
-## 회귀
-
-### 7-1. 회귀 평가 지표
-
-- R² Score (결정계수): 모델이 목표값의 변동을 얼마나 잘 설명하는가
+### Pipeline + GridSearchCV
 
 ```python
-from sklearn.metrics import r2_score
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 
-r2=r2_score(y_test,y_pred) # (0 ~ 1) - 1에 가까울수록 좋음
+# 컬럼별 전처리
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), ["speed", "temperature"]),
+        ("cat", OneHotEncoder(), ["mode"])
+    ]
+)
+
+# 파이프라인 생성 (전처리 + 모델)
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("model", RandomForestClassifier(random_state=42))
+])
+
+# 탐색할 하이퍼파라미터
+# Pipeline 내부의 특정 단계 파라미터를 GridSearchCV에서 조절하려면 "단계이름__파라미터이름" 형식으로 지정
+param_grid = {
+    "model__n_estimators": [50, 100, 200],
+    "model__max_depth": [3, 5, None]
+}
+
+# GridSearchCV
+grid = GridSearchCV(
+    estimator=pipeline,
+    param_grid=param_grid,
+    cv=5
+)
+
+# 학습 (전처리 + 교차 검증 + 최적 모델 학습)
+grid.fit(X_train, y_train)
+
+# 최적의 하이퍼파라미터
+print(grid.best_params_)
+
+# 최적의 모델
+best_model = grid.best_estimator_
+
+# 예측
+y_pred = best_model.predict(X_test)
 ```
-
-> model.score(X_test, y_test) : R² Score 출력
 
 ---
 
