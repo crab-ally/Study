@@ -1,6 +1,6 @@
 # MoveIt2
 
-로봇 팔이 목표 위치까지 안전하게 움직이는 경로를 계산해 주는 ROS 2 planning framework
+로봇 팔이 목표 위치까지 안전하게 움직이는 경로를 계산해 주는 ROS2 planning framework
 
 ---
 
@@ -25,6 +25,13 @@ Planner 경로 생성
    ↓
 실행
 ```
+
+- URDF
+- SRDF
+- Planning Scene
+- Motion Planner
+- Kinematics Solver
+- ros2_control: 실제로 로봇을 움직이는 실행 계층
 
 ---
 
@@ -109,3 +116,31 @@ RViz (UI)
 - 주변 환경 (테이블, 박스 등)
 - 충돌 정보
 - Attached Object
+
+---
+
+## 노드
+
+- move_group: MoveIt의 두뇌
+
+```
+RViz2 또는 Python 코드
+        ↓
+    move_group
+        ↓
+Motion Planner / Kinematics / Collision Checking
+        ↓
+Trajectory 생성
+        ↓
+Controller 또는 Gazebo / 실제 로봇
+```
+
+```
+1. 현재 관절 상태 확인
+2. 목표 위치에 대한 역기구학 계산
+3. 관절 제한 확인
+4. 충돌 검사
+5. 경로 계획
+6. trajectory 생성
+7. 실행 요청
+```

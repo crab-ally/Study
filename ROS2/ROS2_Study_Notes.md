@@ -15,6 +15,7 @@
 
 ```bash
 ros2 topic list # 토픽 목록 확인
+ros2 topic list -t # 토픽 목록 확인 (타입 포함)
 ros2 topic echo 토픽명 # 토픽 내용 확인
 ros2 topic info 토픽명 # 토픽 정보 확인
 ros2 topic hz 토픽명 # 토픽 주파수(발행주기) 확인

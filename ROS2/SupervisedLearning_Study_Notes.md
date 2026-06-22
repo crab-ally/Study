@@ -99,6 +99,7 @@ X, y = make_classification(
     n_samples=10,       # 생성할 데이터 개수
     n_features=4,       # 특징 개수
     n_classes=2,        # 분류 클래스 개수 (y)
+    weights=[0.9, 0.1], # 데이터 불균형 (기본값: [0.5, 0.5])
     random_state=42
 )
 
@@ -177,6 +178,9 @@ imputer = SimpleImputer(strategy="mean")
 X_filled = imputer.fit_transform(X)
 ```
 
+- `strategy="mean"`: 평균값
+- `strategy="most_frequent"`: 최빈값
+
 2. 범주형 처리: 범주형 데이터를 수치형 데이터로 변환
 
 ```python
@@ -207,6 +211,9 @@ X_scaled = scaler.fit_transform(X)
 scaler = MinMaxScaler()
 X_scaled = scaler.fit_transform(X)
 ```
+
+> 데이터 전처리 후 반환된 데이터는 numpy 배열 형태이므로, 필요시 DataFrame으로 변환하여 확인
+> `X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)`
 
 ---
 
@@ -480,6 +487,9 @@ model2.fit(X_train, y_train)
 
 # n_estimators: 트리의 개수 (기본값: 100)
 model=RandomForestClassifier(n_estimators=100)
+
+# 특성 중요도: 각 특징이 예측에 얼마나 기여했는지
+model.feature_importances_
 ```
 
 장점
@@ -522,7 +532,8 @@ model.fit(X_train, y_train)
 
 ### 5-6. SVC (Support Vector Classifier)
 
-데이터를 가장 잘 구분할 수 있는 최적의 결정 경계(초평면)를 찾아 새로운 데이터를 분류
+데이터를 가장 잘 구분할 수 있는 최적의 결정 경계(초평면)를 찾아 새로운 데이터를 분류.
+SVM 기반 분류 모델.
 
 ```python
 from sklearn.svm import SVC
@@ -530,6 +541,12 @@ from sklearn.svm import SVC
 model = SVC() # 기본값: C=1.0
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
+
+model = SVC(probability=True) # predict_proba() 사용 시 필요
+model.fit(X_train, y_train)
+y_pred_proba = model.predict_proba(X_test)
+
+model = SVC(class_weight="balanced") # 데이터 불균형 시
 ```
 
 장점
@@ -570,6 +587,57 @@ y_pred = model.predict(X_test)
 
 - 가정(특성 간 독립성, 데이터가 정규분포를 따름)이 실제 데이터와 맞지 않으면 성능 저하
 - 복잡한 데이터 패턴을 표현하는 데 한계가 있음
+
+---
+
+### 5-8. ExtraTrees
+
+Random Forest와 비슷하지만 더 무작위성이 강한 트리 앙상블 모델
+
+```python
+from sklearn.ensemble import ExtraTreesClassifier
+
+model = ExtraTreesClassifier()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+```
+
+장점:
+
+- 빠름
+- 과적합 감소 효과
+- feature가 많을 때 좋음
+
+단점:
+
+- Random Forest보다 항상 좋은 것은 아님
+- 해석 어려움
+
+---
+
+### 5-9. Gradient Boosting
+
+Decision Tree를 여러 개 이어 붙여서 성능을 개선하는 앙상블 모델
+
+```python
+from sklearn.ensemble import GradientBoostingClassifier
+
+model = GradientBoostingClassifier()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+```
+
+장점
+
+- 높은 성능 가능
+- 비선형 패턴 학습
+- 특징 중요도 확인 가능
+
+단점
+
+- 하이퍼파라미터에 민감
+- 학습 시간이 길 수 있음
+- 과적합 주의
 
 ---
 
@@ -775,7 +843,7 @@ model.fit(X_train, y_train)
 
 | 실제 \ 예측 | 긍정 | 부정 |
 |---|---|---|
-| 긍정 | TP | FN  |
+| 긍정 | TP | FN |
 | 부정 | FP | TN |
 
 - TP (True Positive): 실제 긍정 → 긍정 예측 (정답)
@@ -788,6 +856,12 @@ from sklearn.metrics import confusion_matrix
 
 cm = confusion_matrix(y_test, y_pred)
 print(cm)
+
+tn, fp, fn, tp = cm.ravel()
+print("TN:", tn)
+print("FP:", fp)
+print("FN:", fn)
+print("TP:", tp)
 ```
 
 ---
@@ -795,10 +869,21 @@ print(cm)
 ### 6-2. 분류 평가지표
 
 - Accuracy (정확도): 전체 중에서 맞춘 비율 `(TP + TN) / (TP + TN + FP + FN)`
+
+> 데이터 불균형 시 주의
+
 - Precision (정밀도): 긍정으로 예측한 것 중에서 실제 긍정인 비율 `TP / (TP + FP)`
 - Recall (재현율): 실제 긍정인 것 중에서 긍정으로 예측한 비율 `TP / (TP + FN)`
 - F1-Score (F1 점수): 정밀도와 재현율의 조화평균 `2 * (Precision * Recall) / (Precision + Recall)`
 - ROC-AUC: 여러 임계값에서 양성과 음성을 구분하는 모델의 능력을 평가하는 지표
+- ROC Curve: ROC-AUC를 시각화한 그래프
+    - FPR: False Positive Rate (X축) `FP / (FP + TN)`
+    - TPR: True Positive Rate (Y축) `TP / (TP + FN)`
+    - Thresholds: 임계값
+- Precision-Recall Curve: 정밀도와 재현율의 관계를 시각화한 그래프
+    - Precision: 정밀도 (Y축) `TP / (TP + FP)`
+    - Recall: 재현율 (X축) `TP / (TP + FN)`
+    - Thresholds: 임계값
 
 ---
 
@@ -811,7 +896,9 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     classification_report,
-    roc_auc_score
+    roc_auc_score,
+    roc_curve,
+    precision_recall_curve
 )
 
 pred = model.predict(X_test) # 반환값: 배열
@@ -825,6 +912,19 @@ print(classification_report(y_test, pred)) # 지표를 한 번에 출력
 # 확률값 필요!
 prob = model.predict_proba(X_test)[:, 1] # 클래스 1일 확률만 추출
 print("ROC-AUC:", roc_auc_score(y_test, prob))
+
+fpr, tpr, thresholds = roc_curve(y_true, danger_probabilities)
+print("FPR:", fpr)
+print("TPR:", tpr)
+print("Thresholds:", thresholds)
+
+precision, recall, thresholds = precision_recall_curve(
+    y_true,
+    danger_probabilities
+)
+print("Precision:", precision)
+print("Recall:", recall)
+print("Thresholds:", thresholds)
 ```
 
 > model.score(X_test, y_test) : accuracy 출력

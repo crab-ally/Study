@@ -60,8 +60,9 @@ df = pd.read_csv("파일명.csv")
 | `df.head(n)` | 상위 n개 행 출력 (기본값: 5) |
 | `df.tail(n)` | 하위 n개 행 출력 (기본값: 5) |
 | `df[ df['컬럼명'] > 값 ]` | 특정 조건에 맞는 행 선택 (행 필터링) |
-| `df[ (df['컬럼명'] > 값 ) & (df['컬럼명'] == '값']` | 복합 조건 |
+| `df[ (df['컬럼명'] > 값 ) & (df['컬럼명'] == '값')]` | 복합 조건 |
 | `df.drop([행 인덱스], axis=0)` | 특정 행 삭제 후 반환 |
+| `df.dropna()` | 결측치가 포함된 행 삭제 후 반환 |
 
 **복합 조건 연산자**
 - `&`: AND
@@ -77,6 +78,7 @@ df = pd.read_csv("파일명.csv")
 | `df[['컬럼명']]` | DataFrame | 단일 컬럼을 DataFrame으로 선택 |
 | `df[['컬럼1', '컬럼2']]` | DataFrame | 여러 컬럼 선택 |
 | `df.drop(['컬럼명'], axis=1)` | DataFrame | 특정 컬럼 삭제 후 반환 |
+| `df.dropna(axis=1)` | 결측치가 포함된 열 삭제 후 반환 |
 
 ### 3.4 크기 확인
 
@@ -109,12 +111,17 @@ df.isnull().sum().sum() # 전체 결측치 총 개수
 | `df.fillna(값)` | 결측치를 특정 값으로 채우고 새로운 DataFrame 반환 |
 | `df.fillna(값, inplace=True)` | 원본 DataFrame의 결측치를 특정 값으로 채우기 |
 
+- df.mean(): 각 컬럼의 평균값
+- df.median(): 각 컬럼의 중앙값
+- df.std(): 각 컬럼의 표준편차
+
 ### 3.8 정렬
 
 | 함수 | 설명 |
 |------|------|
 | `df.sort_values("컬럼명")` | 오름차순 |
 | `df.sort_values("컬럼명", ascending=False)` | 내림차순 |
+| `df.sort_values(by="컬럼명")` | 기준 컬럼 지정 |
 | `df.sort_values(["컬럼명1", "컬럼명2"] )` | 컬럼1 기준 오름차순 → 컬럼2 기준 오름차순 |
 | `df.sort_values(["컬럼명1", "컬럼명2"], ascending=[False, True] )` | 컬럼1 기준 내림차순 → 컬럼2 기준 오름차순 |
 
@@ -130,4 +137,10 @@ df.isnull().sum().sum() # 전체 결측치 총 개수
 
 ---
 
-## 5. Pandas 기초 조작: 컬럼 선택, 행 필터링, 정렬, 조건문, 새 컬럼 만들기
+**value_counts()**
+
+각 값이 몇 번 등장하는지 세는 함수
+
+**tolist()**
+
+list로 변환
