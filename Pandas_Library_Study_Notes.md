@@ -144,3 +144,9 @@ df.isnull().sum().sum() # 전체 결측치 총 개수
 **tolist()**
 
 list로 변환
+
+**groupby()**
+
+특정 컬럼 기준으로 데이터를 그룹으로 묶는 기능
+
+`df.groupby("컬럼명")`

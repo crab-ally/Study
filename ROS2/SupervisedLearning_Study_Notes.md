@@ -419,7 +419,10 @@ model.fit(X_train, y_train)
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_text
 
-model = DecisionTreeClassifier(max_depth=3) # 깊이 제한 (기본값: None)
+# min_samples_split: 노드를 분할하기 위한 최소 데이터 개수 (기본값: 2)
+# min_samples_leaf: 최종 잎 노드에 있어야 하는 최소 데이터 개수 (기본값: 1)
+# max_depth: 트리의 최대 깊이 (기본값: None)
+model = DecisionTreeClassifier(max_depth=3)
 model.fit(X_train, y_train)
 
 print(export_text(model, feature_names=list(X.columns))) # 트리 구조 출력
@@ -488,7 +491,7 @@ model2.fit(X_train, y_train)
 # n_estimators: 트리의 개수 (기본값: 100)
 model=RandomForestClassifier(n_estimators=100)
 
-# 특성 중요도: 각 특징이 예측에 얼마나 기여했는지
+# 특성 중요도: 각 특징이 예측에 얼마나 기여했는지 [트리 기반 모델에서만 사용 가능]
 model.feature_importances_
 ```
 
@@ -538,7 +541,10 @@ SVM 기반 분류 모델.
 ```python
 from sklearn.svm import SVC
 
-model = SVC() # 기본값: C=1.0
+# C: 오류 허용 정도 (규제강도, 기본값: 1.0)
+# gamma: 커널 함수의 영향력 범위 (기본값: 'scale')
+# kernel: 데이터를 나누는 방법 선택 (기본값: 'rbf')
+model = SVC()
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
@@ -561,6 +567,33 @@ model = SVC(class_weight="balanced") # 데이터 불균형 시
 - 파라미터 튜닝 필요
 - 모델의 결과를 해석하기 어려움
 - 특성 스케일에 민감 → 스케일링 필요
+
+---
+
+### 5-7. SVR (Support Vector Regressor)
+
+데이터 오차를 일정 범위(ε) 안에서는 무시하면서, 가장 안정적인 직선을 찾는 회귀 모델
+
+```python
+from sklearn.svm import SVR
+
+model = SVR() # 기본값: C=1.0
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+```
+
+장점
+
+- 비선형 데이터 잘 처리 (kernel 사용)
+- 과적합에 비교적 강함
+- 고차원 데이터에서도 성능 안정적
+
+단점
+
+- 데이터 많으면 매우 느림
+- 파라미터(C, ε, gamma) 튜닝 중요
+- 스케일링 필수
+- 해석이 어려움
 
 ---
 
@@ -762,7 +795,7 @@ model.fit(X_poly, y)
 ```python
 from sklearn.tree import DecisionTreeRegressor
 
-model = DecisionTreeRegressor(max_depth=4, random_state=42)
+model = DecisionTreeRegressor(max_depth=4, random_state=42) # 기본값: None
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 ```
@@ -789,7 +822,7 @@ y_pred = model.predict(X_test)
 ```python
 from sklearn.ensemble import RandomForestRegressor
 
-model = RandomForestRegressor(n_estimators=100, random_state=42)
+model = RandomForestRegressor(n_estimators=100, random_state=42) # 기본값: 100
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 ```
@@ -815,6 +848,7 @@ y_pred = model.predict(X_test)
 ```python
 from sklearn.ensemble import GradientBoostingRegressor
 
+# learning_rate: 새로 추가되는 트리가 기존 모델을 얼마나 수정할지 (기본값: 0.1)
 model = GradientBoostingRegressor(random_state=42)
 model.fit(X_train, y_train)
 ```
@@ -830,6 +864,30 @@ model.fit(X_train, y_train)
 - 학습 속도가 비교적 느림
 - 하이퍼파라미터 튜닝이 중요함
 - 모델 구조가 복잡하여 해석이 어려움
+
+---
+
+### 5-15. KNeighborsRegressor
+
+가장 가까운 k개 값 평균으로 예측하는 모델
+
+```python
+from sklearn.neighbors import KNeighborsRegressor
+
+model = KNeighborsRegressor(n_neighbors=5) # 기본값: 5
+model.fit(X_train, y_train)
+```
+
+장점
+
+- 단순, 직관적
+- 비선형 잘 처리
+
+단점
+
+- 느림
+- 스케일 민감
+- 고차원 약함
 
 ---
 
@@ -935,7 +993,7 @@ print("Thresholds:", thresholds)
 
 ### 6-4. 회귀 평가지표
 
-- R² Score (결정계수): 모델이 목표값의 변동을 얼마나 잘 설명하는가
+- R² Score (결정계수): 전체 패턴을 얼마나 잘 설명하는지
 
 ```python
 from sklearn.metrics import r2_score
@@ -1057,14 +1115,69 @@ param_grid= {
 grid=GridSearchCV(
     RandomForestClassifier(random_state=42),
     param_grid=param_grid,
-    cv=5
-)
+    scoring="accuracy", # 기준 - 기본값: model.score(X_train, y_train)
+    cv=5,
+    n_jobs=-1 # 병렬 처리할 CPU 코어 개수 (-1: 모든 코어 사용)
+) 
 
 grid.fit(X_train,y_train)
 
 best_model = grid.best_estimator_ # 최적의 파라미터로 학습된 모델
 
 print(grid.best_params_)  # 최적의 하이퍼파라미터 조합
+print(grid.best_score_) # 최적의 하이퍼파라미터 조합의 성능
+```
+
+> `scoring="neg_mean_absolute_error"`:
+> MAE는 낮을수록 좋음 → 음수로 변환해서 최대값을 찾음
+
+### RandomizedSearchCV
+
+조합의 일부를 랜덤하게 선택해서 테스트
+
+```python
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier
+
+X, y = make_classification(
+    n_samples=1000,
+    n_features=8,
+    n_classes=2,
+    random_state=42
+)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+model = RandomForestClassifier(random_state=42)
+
+param_distributions = {
+    "n_estimators": [50, 100, 200, 300],
+    "max_depth": [3, 5, 7, None],
+    "min_samples_split": [2, 5, 10],
+    "min_samples_leaf": [1, 2, 4]
+}
+
+random_search = RandomizedSearchCV(
+    estimator=model,
+    param_distributions=param_distributions,
+    n_iter=10, # 탐색할 조합의 개수
+    cv=5,
+    scoring="accuracy",
+    random_state=42,
+    n_jobs=-1
+)
+
+random_search.fit(X_train, y_train)
+
+print("최적 파라미터:", random_search.best_params_)
+print("최적 교차검증 점수:", random_search.best_score_)
+print("테스트 점수:", random_search.score(X_test, y_test))
 ```
 
 ### Pipeline + GridSearchCV
@@ -1121,9 +1234,9 @@ y_pred = best_model.predict(X_test)
 
 # 8. 모델 저장
 
-## Python 라이브러리
+## joblib
 
-- joblib : Python 객체를 파일로 저장하고 불러오는 라이브러리
+Python 객체를 파일로 저장하고 불러오는 라이브러리
 
 ```python
 import joblib
