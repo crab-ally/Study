@@ -1,6 +1,6 @@
-# Supervised Learning
+# 지도학습(Supervised Learning)
 
-정답이 포함된 데이터를 가지고, 입력이 들어왔을 때 정답을 예측하는 규칙을 학습하는 방법
+정답이 있는 데이터를 보여주면서 → 규칙을 스스로 찾게 하는 것
 
 ```text
 입력값 + 정답 → 학습(fit) → 모델
@@ -8,245 +8,121 @@
 입력값 → 모델 → 예측값(predict)
 ```
 
-- 입력값 = 특징(feature), 독립변수, X
-- 정답 = 라벨(label), 타깃(target), 종속변수, y
+| 용어 | 다른 이름 | 예시 |
+|------|----------|------|
+| 입력값 | 특징(feature), 독립변수, X | 공부시간, 출석률 |
+| 정답 | 라벨(label), 타겟(target), 종속변수, y | 합격/불합격 |
+| 모델 | 알고리즘 | 규칙을 담은 상자 |
 
 ---
 
-# 1. 전체 흐름
+## CHAPTER 1. 지도학습의 두 가지 유형
 
-```text
-1. 데이터 준비
-      ↓
-2. 데이터 분리 (Train/Test)
-      ↓
-3. 모델 학습 (fit)
-      ↓
-4. 예측 (predict)
-      ↓
-5. 평가 (Accuracy, F1 등)
-      ↓
-6. 개선 (과적합 해결, 하이퍼파라미터 조정)
+### 1-1. 분류 (Classification) — 답이 "종류"일 때
+
+예측 결과가 카테고리(종류)인 경우
+
+| 예시 | 입력(X) | 예측(y) |
+|------|--------|--------|
+| 스팸 메일 분류 | 메일 내용, 발신자 | 스팸 / 정상 |
+| 암 진단 | 혈액 수치, 나이 | 양성 / 음성 |
+| 고양이 vs 강아지 | 이미지 픽셀 | 고양이 / 강아지 |
+
+### 1-2. 회귀 (Regression) — 답이 "숫자"일 때
+
+예측 결과가 연속적인 수치인 경우
+
+| 예시 | 입력(X) | 예측(y) |
+|------|--------|--------|
+| 집값 예측 | 면적, 위치, 층수 | 3억 2천만원 |
+| 주가 예측 | 거래량, 전날 종가 | 87,500원 |
+| 온도 예측 | 날짜, 위치, 기압 | 23.4℃ |
+
+---
+
+## CHAPTER 2. 전체 흐름
+
+```
+데이터 준비
+    ↓
+데이터 분리 (Train / Test)
+    ↓
+데이터 전처리 (결측치, 인코딩, 스케일링)
+    ↓
+모델 선택 & 학습 (fit)
+    ↓
+예측 (predict)
+    ↓
+평가 (Accuracy, F1, RMSE 등)
+    ↓
+개선 (하이퍼파라미터 튜닝, 교차검증)
 ```
 
 ---
 
-# 2. 문제 유형
+## CHAPTER 3. 데이터 준비
 
-## 2-1. 분류 (Classification)
+### 3-1. 데이터가 어떻게 생겼는지 이해하기
 
-결과가 "카테고리(종류)"인 경우
+| 공부시간 | 출석률 | 과제제출 | **합격여부** |
+|---------|-------|---------|------------|
+| 5 | 80 | 1 | **1** |
+| 2 | 50 | 0 | **0** |
+| 7 | 90 | 1 | **1** |
 
-예시
-
-- 고양이 / 강아지 분류
-- 스팸 메일 분류
-- 암 진단
-
-대표 알고리즘
-
-- Logistic Regression
-- Decision Tree
-- Random Forest
-
----
-
-## 2-2. 회귀 (Regression)
-
-결과가 "숫자(연속값)"인 경우
-
-예시
-
-- 집값 예측
-- 주가 예측
-- 온도 예측
-
-대표 알고리즘
-
-- Linear Regression
-- Random Forest Regressor
-
----
-
-# 3. 데이터
-
-## 3-1. 데이터 준비
-
-예시 데이터
-
-| 공부시간 | 출석률 | 과제제출 | 합격여부 |
-|---|---|---|---|
-| 5 | 80 | 1 | 1 |
-| 2 | 50 | 0 | 0 |
-| 7 | 90 | 1 | 1 |
-
-```text
-X = [공부시간, 출석률, 과제제출]
-y = 합격여부
-```
+- **X (입력)**: 공부시간, 출석률, 과제제출 → feature
+- **y (정답)**: 합격여부 → label
 
 ```python
 import pandas as pd
-from sklearn.datasets import make_classification
 
-# 기존 데이터 - Scikit-Learn의 입력 데이터는 2차원 형태여야 한다
+data = {
+    "study_hours": [5, 2, 7],
+    "attendance": [80, 50, 90],
+    "assignment": [1, 0, 1],
+    "pass": [1, 0, 1]
+}
+
 df = pd.DataFrame(data)
-X = df[["study_hours", "attendance", "assignment"]]
-y = df["pass"]
 
-# 분류용 가짜 데이터 - X(숫자 데이터), y(클래스)
+X = df[["study_hours", "attendance", "assignment"]]  # 입력
+y = df["pass"]                                       # 정답
+```
+
+> ⚠️ Scikit-Learn은 X가 반드시 **2차원 배열(행렬)** 형태여야 합니다.  
+> `df["컬럼"]`은 1차원, `df[["컬럼"]]`은 2차원이니 대괄호 두 개를 꼭 쓰세요.
+
+---
+
+### 3-2. 연습용 가짜 데이터 만들기
+
+실제 데이터가 없을 때 Scikit-Learn으로 연습용 데이터를 만들 수 있습니다.
+
+```python
+from sklearn.datasets import make_classification, make_regression
+
+# 분류용
 X, y = make_classification(
-    n_samples=10,       # 생성할 데이터 개수
-    n_features=4,       # 특징 개수
-    n_classes=2,        # 분류 클래스 개수 (y)
-    weights=[0.9, 0.1], # 데이터 불균형 (기본값: [0.5, 0.5])
-    random_state=42
+    n_samples=1000,     # 행(데이터) 개수
+    n_features=5,       # 열(feature) 개수
+    n_classes=2,        # 클래스 개수
+    random_state=42     # 재현성 고정
 )
 
-# 회귀용 가짜 데이터 - X(숫자 데이터), y(숫자 데이터)
+# 회귀용
 X, y = make_regression(
-    n_samples=10,
+    n_samples=1000,
     n_features=3,
-    noise=5,            # 노이즈(오차)
+    noise=10,           # 오차(노이즈) 정도
     random_state=42
 )
 ```
 
-### Feature와 Data 개수 차이
-
-```text
-feature 수 = 입력 항목 수
-data 수 = 행(row) 개수
-```
-
-예시
-
-```text
-100명 학생 데이터
-
-공부시간
-출석률
-과제제출
-
-→ feature = 3개
-→ data = 100개
-```
+> 💡 `random_state=42`는 "항상 같은 결과를 내라"는 씨앗값입니다. 어떤 숫자든 상관없어요.
 
 ---
 
-## 3-2. 데이터 분리
-
-학습용 데이터와 평가용 데이터를 분리
-
-```python
-from sklearn.model_selection import train_test_split
-
-# 셔플 → 분리
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y,
-    test_size=0.2,   # 20% 평가용
-    random_state=42, # 항상 같은 방식으로 분리 (재현성)
-    stratify=y       # 클래스 비율 유지하면서 분리
-)
-```
-
----
-
-## 3-3. 데이터 전처리
-
-데이터 품질을 높여 모델이 더 안정적으로 학습하도록 하기 위해서 수행하는 작업
-
-```text
-X와 y, train/test 분리
-      ↓
-학습 데이터에만 전처리 fit (데이터 누수 방지)
-      ↓
-학습 데이터와 테스트 데이터 transform
-      ↓
-모델 학습
-```
-
-1. 결측치 처리: 데이터 누락으로 인한 학습 오류 방지
-
-```python
-from sklearn.impute import SimpleImputer
-
-# 객체 생성 (mean: 평균값, median: 중앙값, most_frequent: 최빈값)
-imputer = SimpleImputer(strategy="mean")
-
-# fit(): 필요한 값 계산 + transform(): 데이터 변환
-X_filled = imputer.fit_transform(X)
-```
-
-- `strategy="mean"`: 평균값
-- `strategy="most_frequent"`: 최빈값
-
-2. 범주형 처리: 범주형 데이터를 수치형 데이터로 변환
-
-```python
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-
-# 원-핫 인코딩: X의 범주형 변수
-encoder = OneHotEncoder(sparse_output=False)
-X_encoded = encoder.fit_transform(X)
-
-# 라벨 인코딩: y(정답 라벨)의 범주형 변수 [자동 사전식 정렬]
-encoder = LabelEncoder()
-y_encoded = encoder.fit_transform(y)
-y_decoded = encoder.inverse_transform(y_encoded) # 디코딩
-```
-
-3. 스케일링: 변수 간 스케일을 통일하여 모델 학습 안정성 및 성능 향상
-
-```python
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
-
-# 표준화(Standardization): 각 특성의 평균을 0, 표준편차를 1에 가깝게 변환
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-# 정규화(Normalization): 0~1 사이의 값으로 변환
-scaler = MinMaxScaler()
-X_scaled = scaler.fit_transform(X)
-```
-
-> 데이터 전처리 후 반환된 데이터는 numpy 배열 형태이므로, 필요시 DataFrame으로 변환하여 확인
-> `X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)`
-
----
-
-## 3-4. 컬럼 별 전처리와 파이프라인
-
-```python
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.pipeline import Pipeline
-
-preprocessor = ColumnTransformer(
-    transformers = [
-        ("num", StandardScaler(), ["speed","temperature"]),
-        ("cat", OneHotEncoder(), ["mode"])
-    ]
-)
-
-# 파이프라인 생성 (전처리 + 모델을 하나로 묶어서 관리)
-pipeline = Pipeline([
-    ("preprocessor", preprocessor),
-    ("model", LogisticRegression())
-])
-
-# 학습 (파이프라인 호출)
-pipeline.fit(X_train, y_train)
-
-# 예측 (파이프라인 호출)
-y_pred = pipeline.predict(X_test)
-```
-
----
-
-## 3-5. 데이터 증강 (SMOTE)
+### 3-3. 데이터 증강
 
 소수 클래스의 가상 데이터를 생성하여 클래스 불균형 문제를 완화하는 오버샘플링 기법
 
@@ -260,75 +136,128 @@ X_res, y_res = smote.fit_resample(X_train, y_train)
 
 ---
 
-## 3-6. Scikit-Learn 내장 데이터셋
+## CHAPTER 4. 데이터 분리
 
-교육용 데이터셋
+- **Train 데이터**: 모델이 학습하는 데이터
+- **Test 데이터**: 모델이 평가하는 데이터
 
 ```python
-from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
 
-iris = load_iris()
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,      # 20% 평가용
+    random_state=42,    # 재현성 고정
+    stratify=y          # 클래스 비율 유지 (분류 문제에서 권장)
+)
+```
 
-print("입력 데이터 크기:", iris.data.shape)     # (150, 4)
-print("정답 데이터 크기:", iris.target.shape)   # (150,)
-print("특징 이름:", iris.feature_names)
-print("클래스 이름:", iris.target_names)
+> 💡 `stratify=y`: 예를 들어 합격:불합격 = 7:3이라면, train/test 모두 7:3 비율을 유지합니다. 데이터 불균형 시 특히 중요합니다.
+
+---
+
+## CHAPTER 5. 데이터 전처리
+
+데이터 품질을 높여 모델이 더 안정적으로 학습하도록 하기 위해서 수행하는 작업
+
+> ⚠️ **절대 원칙**: 전처리는 **Train 데이터로만 fit()** 하고, Test 데이터는 **transform()만** 적용  
+> 이유: Test 데이터 정보가 학습에 새어 들어가는 "데이터 누수(Data Leakage)"를 막기 위해
+
+### 5-1. 결측치 처리
+
+```python
+from sklearn.impute import SimpleImputer
+
+imputer = SimpleImputer(strategy="mean")   # 평균값으로 채우기
+
+imputer.fit(X_train)                       # Train으로만 계산
+X_train = imputer.transform(X_train)
+X_test  = imputer.transform(X_test)        # Test는 transform만
+```
+
+> `strategy="median"`: 중앙값 / `strategy="most_frequent"`: 최빈값
+
+### 5-2. 범주형 처리
+
+머신러닝 모델은 숫자만 이해합니다.
+
+```python
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
+# X에 있는 범주형 변수 → 원-핫 인코딩
+# "서울" → [1, 0, 0], "부산" → [0, 1, 0], "제주" → [0, 0, 1]
+encoder = OneHotEncoder(sparse_output=False)
+X_encoded = encoder.fit_transform(X_train)
+
+# y(정답)가 문자인 경우 → 라벨 인코딩
+# "합격" → 1, "불합격" → 0
+le = LabelEncoder()
+y_train = le.fit_transform(y_train)
+y_test  = le.transform(y_test)
+```
+
+> `y_decoded = le.inverse_transform(y_encoded)`: 디코딩
+
+### 5-3. 스케일링
+
+공부시간(1~10)과 출석률(0~100)은 단위가 다릅니다. 이 차이가 모델을 망칩니다.
+
+```python
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+# 표준화: 평균=0, 표준편차=1로 변환 (단위 제거)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled  = scaler.transform(X_test)
+
+# 정규화: 0~1 사이로 변환
+scaler = MinMaxScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled  = scaler.transform(X_test)
+```
+
+> 💡 스케일링이 **필수**인 알고리즘: KNN, SVM, Logistic Regression  
+> 스케일링이 **불필요**한 알고리즘: Decision Tree, Random Forest (트리 기반)
+
+### 5-4. 파이프라인 — 컬럼 별 전처리 + 모델을 하나로 묶기
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+
+preprocessor = ColumnTransformer(
+    transformers = [
+        ("num", StandardScaler(), ["speed","temperature"]),
+        ("cat", OneHotEncoder(), ["mode"])
+    ]
+)
+
+pipeline = Pipeline([
+    ("preprocessor", preprocessor),
+    ("model", LogisticRegression())
+])
+
+pipeline.fit(X_train, y_train)          # 전처리 + 학습 한 번에
+y_pred = pipeline.predict(X_test)       # 전처리 + 예측 한 번에
 ```
 
 ---
 
-# 4. 학습 (Training)
+## CHAPTER 6. 모델 선택 & 학습
 
-정답과 예측의 차이를 줄이도록 규칙을 계속 수정하는 과정
+### 6-1. Scikit-Learn의 공통 인터페이스
 
-용어
-
-- 예측값(Prediction): 모델이 계산한 값
-- 실제값(Ground Truth): 정답
-- 오차(Error): 실제값 - 예측값
-- 손실 함수(Loss Function): 오차들을 하나의 숫자로 만드는 함수
-
----
-
-## 4-1. 손실 함수
-
-모델이 얼마나 틀렸는지 숫자로 계산하는 함수
-
-### 평균절대오차 (Mean Absolute Error, MAE)
-
-`(1/n) * Σ|실제값 - 예측값|`
+Scikit-Learn의 모든 모델은 사용법이 동일합니다.
 
 ```python
-from sklearn.metrics import mean_absolute_error
-
-mae = mean_absolute_error(y_test, y_pred) # 2.13 → 약 2.13% 정도 틀림
+model = 모델명()                # 1. 모델 객체 생성
+model.fit(X_train, y_train)    # 2. 학습
+y_pred = model.predict(X_test) # 3. 예측
 ```
 
-### 평균제곱오차 (Mean Squared Error, MSE)
-
-`(1/n) * Σ(실제값 - 예측값)^2`
-
-```python
-from sklearn.metrics import mean_squared_error
-
-mse = mean_squared_error(y_test, y_pred)
-```
-
-### 평균제곱근오차 (Root Mean Squared Error, RMSE)
-
-실제 데이터의 단위와 동일한 크기의 오차를 나타냄
-
-`√[(1/n) * Σ(실제값 - 예측값)^2]`
-
-```python
-from sklearn.metrics import root_mean_squared_error
-
-rmse = root_mean_squared_error(y_test, y_pred)
-```
-
----
-
-## 4-2. model.fit(X, y) 내부 동작
+#### model.fit(X, y) 내부 동작
 
 ```text
 1. w, b 초기화
@@ -338,22 +267,14 @@ rmse = root_mean_squared_error(y_test, y_pred)
 5. 반복
 ```
 
-### 선형 모델 예시
-
-```text
-예측값 = wX + b
-```
-
 - w = 가중치(weight)
 - b = 편향(bias)
 
 ---
 
-# 5. 대표 알고리즘
+### 6-2. 분류 알고리즘
 
-## 분류모델
-
-### 기본 명령어
+#### 기본 명령어
 
 ```python
 # 학습된 클래스 확인
@@ -366,20 +287,12 @@ model.predict(X_test)
 model.predict_proba(X_test)
 ```
 
----
+#### Logistic Regression — 확률로 분류
 
-### 5-1. Logistic Regression
+입력을 0~1 사이 확률로 변환한 뒤 분류합니다.
 
-입력을 확률(0~1)로 변환한 뒤 분류
-
-```text
-입력
- ↓
-확률 계산
- ↓
-Threshold 비교
- ↓
-0 또는 1 분류
+```
+입력값 → 선형 계산 → 시그모이드 함수 → 확률(0~1) → 0.5(threshold) 기준 분류
 ```
 
 ```python
@@ -387,298 +300,97 @@ from sklearn.linear_model import LogisticRegression
 
 model = LogisticRegression()
 model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
 ```
 
-장점
-
-- 빠름
-- 해석이 쉬움
-
-단점
-
-- 비선형 데이터에 약함
-- Feature Scaling 필요
+| 장점 | 단점 |
+|------|------|
+| 빠르고 단순 | 비선형 데이터에 약함 |
+| 결과 해석이 쉬움 | 스케일링 필요 |
 
 ---
 
-### 5-2. Decision Tree
+#### Decision Tree — 스무고개로 분류
 
-질문(규칙)을 계속 던지며 분류
-
-예시
-
-```text
-출석률 > 70 ?
- ├─ Yes → 과제 제출?
- │      ├─ Yes → 합격
- │      └─ No  → 불합격
- └─ No → 불합격
+```
+출석률 > 70% ?
+ ├─ Yes → 과제 제출했나?
+ │      ├─ Yes → 합격 ✅
+ │      └─ No  → 불합격 ❌
+ └─ No → 불합격 ❌
 ```
 
 ```python
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import export_text
+from sklearn.tree import DecisionTreeClassifier, export_text
 
-# min_samples_split: 노드를 분할하기 위한 최소 데이터 개수 (기본값: 2)
-# min_samples_leaf: 최종 잎 노드에 있어야 하는 최소 데이터 개수 (기본값: 1)
-# max_depth: 트리의 최대 깊이 (기본값: None)
-model = DecisionTreeClassifier(max_depth=3)
+model = DecisionTreeClassifier(max_depth=3)   # 깊이 제한으로 과적합 방지
 model.fit(X_train, y_train)
 
-print(export_text(model, feature_names=list(X.columns))) # 트리 구조 출력
+# 트리 구조 출력
+print(export_text(model, feature_names=list(X.columns)))
 ```
 
-장점
-
-- 해석이 쉬움
-- 비선형 데이터 처리 가능
-- Feature Scaling 불필요
-
-단점
-
-- 과적합되기 쉬움
+| 장점 | 단점 |
+|------|------|
+| 결과를 눈으로 볼 수 있음 | 과적합되기 매우 쉬움 |
+| 스케일링 불필요 | 데이터가 조금 바뀌면 구조 전체가 바뀜 |
 
 ---
 
-### 5-3. Ensemble
+#### Random Forest — 나무를 여러 개 모아서 투표
 
-여러 모델의 결과를 결합하여 성능을 높이는 방법
+Decision Tree 여러 개를 만들고, 다수결로 최종 예측합니다. Decision Tree의 과적합 문제를 해결합니다.
 
-대표 예시
-
-- Random Forest
-- Gradient Boosting
-- XGBoost
-- LightGBM
-- AdaBoost
-
-```text
-여러 모델
-      ↓
-결과 결합
-      ↓
-더 안정적인 예측
 ```
-
----
-
-### 5-4. Random Forest
-
-Decision Tree 여러 개를 묶은 앙상블(Ensemble) 모델
-
-```text
-Tree 1
-Tree 2
-Tree 3
-.../
-Tree N
-   ↓
-다수결(Voting)
-   ↓
-최종 예측
+Tree 1 → 합격
+Tree 2 → 합격
+Tree 3 → 불합격
+Tree 4 → 합격
+      ↓
+다수결 → 합격 ✅
 ```
 
 ```python
 from sklearn.ensemble import RandomForestClassifier
 
-model1 = RandomForestClassifier()
-model1.fit(X_train, y_train)
+model = RandomForestClassifier(
+    n_estimators=100,       # 나무 개수 (기본값: 100)
+    random_state=42
+)
+model.fit(X_train, y_train)
 
-# 데이터 불균형 시 적은 클래스에 더 큰 중요도를 부여
-model2 = RandomForestClassifier(class_weight="balanced") 
-model2.fit(X_train, y_train)
-
-# n_estimators: 트리의 개수 (기본값: 100)
-model=RandomForestClassifier(n_estimators=100)
-
-# 특성 중요도: 각 특징이 예측에 얼마나 기여했는지 [트리 기반 모델에서만 사용 가능]
-model.feature_importances_
+# 특성 중요도 - 각 특징이 예측에 얼마나 기여했는지 [트리 기반 모델에서만 사용 가능]
+print(model.feature_importances_)
 ```
 
-장점
-
-- 과적합 감소
-- 높은 성능
-- 비선형 데이터 처리 가능
-
-단점
-
-- 모델이 복잡함
-- 학습/예측이 상대적으로 느림
-- 해석이 어려움
+| 장점 | 단점 |
+|------|------|
+| 높은 성능 | 느림 |
+| 과적합 감소 | 해석 어려움 |
+| feature 중요도 제공 | 모델이 복잡함 |
 
 ---
 
-### 5-5. KNeighborsClassifier
+#### 기타 분류 알고리즘 요약
 
-가장 가까운 k개의 이웃을 보고 다수결로 분류
-
-```python
-from sklearn.neighbors import KNeighborsClassifier
-
-model = KNeighborsClassifier(n_neighbors=k) # 기본값: 5
-model.fit(X_train, y_train)
-```
-
-장점
-
-- 매우 쉽고 직관적
-- 데이터가 적을 때 성능이 괜찮음
-- 별도의 복잡한 학습 과정이 거의 없음
-
-단점
-
-- 데이터가 많아지면 느림
-- 스케일링에 민감
+| 알고리즘 | 핵심 아이디어 | 언제 쓰나 |
+|---------|------------|---------|
+| KNeighborsClassifier | 가장 가까운 k개 이웃 다수결 | 데이터가 적을 때 |
+| SVC | 데이터를 나누는 최적의 경계선 | 고차원, 소규모 데이터 |
+| GaussianNB | 확률 계산으로 분류 | 빠른 베이스라인 필요 시 |
+| GradientBoosting | 이전 오차를 다음 트리가 보완 | 높은 성능이 필요할 때 |
 
 ---
 
-### 5-6. SVC (Support Vector Classifier)
+### 6-3. 회귀 알고리즘
 
-데이터를 가장 잘 구분할 수 있는 최적의 결정 경계(초평면)를 찾아 새로운 데이터를 분류.
-SVM 기반 분류 모델.
-
-```python
-from sklearn.svm import SVC
-
-# C: 오류 허용 정도 (규제강도, 기본값: 1.0)
-# gamma: 커널 함수의 영향력 범위 (기본값: 'scale')
-# kernel: 데이터를 나누는 방법 선택 (기본값: 'rbf')
-model = SVC()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-
-model = SVC(probability=True) # predict_proba() 사용 시 필요
-model.fit(X_train, y_train)
-y_pred_proba = model.predict_proba(X_test)
-
-model = SVC(class_weight="balanced") # 데이터 불균형 시
-```
-
-장점
-
-- 적은 데이터에서도 성능 좋음
-- 고차원 데이터(특성이 많은 데이터)에 강함
-- 커널 함수를 통해 비선형 문제도 해결 가능
-
-단점
-
-- 데이터 양이 많아질수록 학습 속도가 느려짐
-- 파라미터 튜닝 필요
-- 모델의 결과를 해석하기 어려움
-- 특성 스케일에 민감 → 스케일링 필요
-
----
-
-### 5-7. SVR (Support Vector Regressor)
-
-데이터 오차를 일정 범위(ε) 안에서는 무시하면서, 가장 안정적인 직선을 찾는 회귀 모델
-
-```python
-from sklearn.svm import SVR
-
-model = SVR() # 기본값: C=1.0
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-```
-
-장점
-
-- 비선형 데이터 잘 처리 (kernel 사용)
-- 과적합에 비교적 강함
-- 고차원 데이터에서도 성능 안정적
-
-단점
-
-- 데이터 많으면 매우 느림
-- 파라미터(C, ε, gamma) 튜닝 중요
-- 스케일링 필수
-- 해석이 어려움
-
----
-
-### 5-7. GaussianNB
-
-각 클래스에 속할 확률을 계산한 뒤, 가장 높은 확률을 가진 클래스로 데이터를 분류
-(각 특성의 값이 독립적이며 정규분포를 따른다고 가정)
-
-```python
-from sklearn.naive_bayes import GaussianNB
-
-model = GaussianNB()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-```
-
-장점
-
-- 학습 및 예측 속도가 빠름
-- 적은 데이터에서도 안정적인 성능을 보임
-- 고차원 데이터 처리에 유리함
-
-단점
-
-- 가정(특성 간 독립성, 데이터가 정규분포를 따름)이 실제 데이터와 맞지 않으면 성능 저하
-- 복잡한 데이터 패턴을 표현하는 데 한계가 있음
-
----
-
-### 5-8. ExtraTrees
-
-Random Forest와 비슷하지만 더 무작위성이 강한 트리 앙상블 모델
-
-```python
-from sklearn.ensemble import ExtraTreesClassifier
-
-model = ExtraTreesClassifier()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-```
-
-장점:
-
-- 빠름
-- 과적합 감소 효과
-- feature가 많을 때 좋음
-
-단점:
-
-- Random Forest보다 항상 좋은 것은 아님
-- 해석 어려움
-
----
-
-### 5-9. Gradient Boosting
-
-Decision Tree를 여러 개 이어 붙여서 성능을 개선하는 앙상블 모델
-
-```python
-from sklearn.ensemble import GradientBoostingClassifier
-
-model = GradientBoostingClassifier()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-```
-
-장점
-
-- 높은 성능 가능
-- 비선형 패턴 학습
-- 특징 중요도 확인 가능
-
-단점
-
-- 하이퍼파라미터에 민감
-- 학습 시간이 길 수 있음
-- 과적합 주의
-
----
-
-## 회귀 모델
-
-### 5-8. Linear Regression
+#### Linear Regression
 
 입력(X)과 출력(y)의 관계를 직선(선형식)으로 모델링하여 숫자를 예측
+
+```
+예측값 = w₁·공부시간 + w₂·출석률 + b
+```
 
 ```python
 from sklearn.linear_model import LinearRegression
@@ -686,83 +398,27 @@ from sklearn.linear_model import LinearRegression
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-print("기울기(계수):", model.coef_)
+print("계수(기울기):", model.coef_)
 print("절편:", model.intercept_)
 ```
 
-장점
+#### Ridge / Lasso — 과적합 방지 선형 회귀
 
-- 해석이 쉬움
-- 구현이 간단함
-- 학습이 빠름
-
-단점
-
-- 비선형 데이터에 약함
-- Feature Scaling 필요
-- 이상치에 민감
-
----
-
-### 5-9. Ridge Regression
-
-선형 회귀에 L2 규제를 추가해 과적합을 줄이는 모델
+Linear Regression에 **규제(Regularization)**를 추가한 버전입니다.
 
 ```python
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge, Lasso
 
-model = Ridge(alpha=1.0) # 규제정도 (기본값: 1.0)
-model.fit(X_train,y_train)
+# Ridge: 모든 feature의 계수를 줄임 (L2 규제)
+ridge = Ridge(alpha=1.0)
+
+# Lasso: 불필요한 feature 계수를 0으로 만듦 (L1 규제, Feature Selection 효과)
+lasso = Lasso(alpha=1.0)
 ```
 
-장점
+#### Polynomial Regression
 
-- 과적합을 줄일 수 있음
-- 모든 특성을 유지하면서 계수의 크기를 조절함
-- 일반 선형회귀보다 예측 성능이 향상되는 경우가 많음
-
-단점
-
-- 불필요한 특성의 계수를 0으로 만들지 못함
-- 하이퍼파라미터 튜닝 필요
-- 선형 관계를 가정하므로 복잡한 비선형 패턴을 잘 표현하지 못함
-- 모델 해석이 일반 선형회귀보다 다소 어려워질 수 있음
-
----
-
-### 5-10. Lasso Regression
-
-선형 회귀에 L1 규제를 추가하여 과적합을 줄이고,
-불필요한 변수를 제거해 모델을 단순화하는 모델
-
-```python
-from sklearn.linear_model import Lasso
-
-model = Lasso(alpha=1.0) # 규제정도 (기본값: 1.0)
-model.fit(X_train,y_train)
-```
-
-장점
-
-- 불필요한 특성의 계수를 0으로 만들어 특성 제거 효과 (Feature Selection) → 모델 해석 용이
-- Ridge 회귀보다 과적합을 더 효과적으로 줄일 수 있음
-
-단점
-
-- 상관관계가 높은 특성들 중 일부를 임의로 제거할 수 있음
-- 하이퍼파라미터 튜닝 필요
-- 선형 관계를 가정하므로 복잡한 비선형 패턴을 잘 표현하지 못함
-
-#### L1, L2 규제
-
-- L1 규제: 계수의 절댓값의 합에 패널티를 부여 → 불필요한 특성의 계수를 0으로 만듦
-- L2 규제: 계수의 제곱의 합에 패널티를 부여 → 계수의 크기를 줄임
-
----
-
-### 5-11. Polynomial Regression
-
-선형 회귀와 다항식을 결합한 모델
+선형 회귀에 다항식을 결합한 모델
 
 ```python
 from sklearn.preprocessing import PolynomialFeatures
@@ -776,418 +432,285 @@ X_poly = poly.fit_transform(X)
 model.fit(X_poly, y)
 ```
 
-장점
+| 장점 | 단점 |
+|------|------|
+| 비선형(곡선) 관계 표현 가능 | 차수(degree)가 너무 크면 과적합 발생 |
 
-- 비선형(곡선) 관계를 표현 가능
-- 구현이 간단함 (PolynomialFeatures + LinearRegression)
+#### 기타 회귀 알고리즘 요약
 
-단점
-
-- 차수(degree)가 너무 크면 과적합(Overfitting) 발생
-- 특성 수가 급격히 증가하여 계산량 증가
+| 알고리즘 | 핵심 아이디어 | 언제 쓰나 |
+|---------|------------|---------|
+| Decision Tree Regressor | 트리 구조로 숫자 예측 | 비선형 데이터 |
+| Random Forest Regressor | 여러 트리의 평균 | 안정적인 성능 필요 시 |
+| Gradient Boosting Regressor | 오차 순차 보완 | 높은 성능 필요 시 |
+| KNeighborsRegressor | 가까운 k개 평균 | 단순한 베이스라인 |
 
 ---
 
-### 5-12. Decision Tree Regressor
+## CHAPTER 7. 평가
 
-질문을 따라가며 숫자값을 예측하는 나무 구조 회귀 모델
+### 7-1. 분류 평가
 
-```python
-from sklearn.tree import DecisionTreeRegressor
+#### Confusion Matrix
 
-model = DecisionTreeRegressor(max_depth=4, random_state=42) # 기본값: None
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
+```
+           예측: 합격  예측: 불합격
+실제: 합격     TP(50)      FN(10)
+실제: 불합격    FP(5)      TN(35)
 ```
 
-장점
+- **TP(True Positive)**: 실제 긍정 → 긍정 예측
+- **TN(True Negative)**: 실제 부정 → 부정 예측
+- **FP(False Positive)**: 실제 부정 → 긍정 예측 (오탐, Type 1 Error)
+- **FN(False Negative)**: 실제 긍정 → 부정 예측 (미탐, Type 2 Error)
 
-- 모델 구조를 시각화할 수 있어 해석이 쉬움
-- 데이터의 비선형 관계를 잘 학습함
-- 데이터 전처리(정규화, 스케일링)가 거의 필요 없음
-- 특성 간의 복잡한 상호작용을 표현할 수 있음
+#### 4가지 핵심 지표
 
-단점
-
-- 과적합 발생 쉬움
-- 데이터가 조금만 바뀌어도 모델 구조가 크게 달라질 수 있음
-- 깊이가 깊어질수록 일반화 성능이 떨어질 수 있음
-
----
-
-### 5-13. Random Forest Regressor
-
-여러 개의 결정 트리를 학습한 후, 그 결과들을 평균내어 최종 예측값을 도출하는 모델
-
-```python
-from sklearn.ensemble import RandomForestRegressor
-
-model = RandomForestRegressor(n_estimators=100, random_state=42) # 기본값: 100
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-```
-
-장점
-
-- 단일 결정 트리의 과적합 문제를 해결하여 일반화 성능이 우수함
-- 다양한 데이터 패턴을 학습할 수 있어 예측 성능이 좋음
-- 특성 중요도(Feature Importance)를 제공하여 모델 해석이 가능함
-- 병렬 처리가 가능하여 학습 속도가 빠름
-
-단점
-
-- 모델이 복잡하여 단일 결정 트리보다 해석이 어려움
-- 메모리 사용량이 비교적 많음
-
----
-
-### 5-14. Gradient Boosting Regressor
-
-이전 트리의 오차를 보완하는 방식으로 순차적으로 트리를 학습하는 앙상블 회귀 모델
-
-```python
-from sklearn.ensemble import GradientBoostingRegressor
-
-# learning_rate: 새로 추가되는 트리가 기존 모델을 얼마나 수정할지 (기본값: 0.1)
-model = GradientBoostingRegressor(random_state=42)
-model.fit(X_train, y_train)
-```
-
-장점
-
-- 높은 예측 성능을 보이는 경우가 많음
-- 비선형 데이터와 복잡한 패턴을 잘 학습함
-- 특성 스케일링(정규화)이 필요하지 않음
-
-단점
-
-- 학습 속도가 비교적 느림
-- 하이퍼파라미터 튜닝이 중요함
-- 모델 구조가 복잡하여 해석이 어려움
-
----
-
-### 5-15. KNeighborsRegressor
-
-가장 가까운 k개 값 평균으로 예측하는 모델
-
-```python
-from sklearn.neighbors import KNeighborsRegressor
-
-model = KNeighborsRegressor(n_neighbors=5) # 기본값: 5
-model.fit(X_train, y_train)
-```
-
-장점
-
-- 단순, 직관적
-- 비선형 잘 처리
-
-단점
-
-- 느림
-- 스케일 민감
-- 고차원 약함
-
----
-
-# 6. 평가 (Evaluation)
-
-## 분류
-
-### 6-1. Confusion Matrix (혼동 행렬)
-
-분류 모델의 성능을 시각적으로 확인하는 표
-
-| 실제 \ 예측 | 긍정 | 부정 |
-|---|---|---|
-| 긍정 | TP | FN |
-| 부정 | FP | TN |
-
-- TP (True Positive): 실제 긍정 → 긍정 예측 (정답)
-- TN (True Negative): 실제 부정 → 부정 예측 (정답)
-- FP (False Positive): 실제 부정 → 긍정 예측 (오탐, Type 1 Error)
-- FN (False Negative): 실제 긍정 → 부정 예측 (미탐, Type 2 Error)
-
-```python
-from sklearn.metrics import confusion_matrix
-
-cm = confusion_matrix(y_test, y_pred)
-print(cm)
-
-tn, fp, fn, tp = cm.ravel()
-print("TN:", tn)
-print("FP:", fp)
-print("FN:", fn)
-print("TP:", tp)
-```
-
----
-
-### 6-2. 분류 평가지표
-
-- Accuracy (정확도): 전체 중에서 맞춘 비율 `(TP + TN) / (TP + TN + FP + FN)`
-
-> 데이터 불균형 시 주의
-
-- Precision (정밀도): 긍정으로 예측한 것 중에서 실제 긍정인 비율 `TP / (TP + FP)`
-- Recall (재현율): 실제 긍정인 것 중에서 긍정으로 예측한 비율 `TP / (TP + FN)`
-- F1-Score (F1 점수): 정밀도와 재현율의 조화평균 `2 * (Precision * Recall) / (Precision + Recall)`
-- ROC-AUC: 여러 임계값에서 양성과 음성을 구분하는 모델의 능력을 평가하는 지표
-- ROC Curve: ROC-AUC를 시각화한 그래프
-    - FPR: False Positive Rate (X축) `FP / (FP + TN)`
-    - TPR: True Positive Rate (Y축) `TP / (TP + FN)`
-    - Thresholds: 임계값
-- Precision-Recall Curve: 정밀도와 재현율의 관계를 시각화한 그래프
-    - Precision: 정밀도 (Y축) `TP / (TP + FP)`
-    - Recall: 재현율 (X축) `TP / (TP + FN)`
-    - Thresholds: 임계값
-
----
-
-### 6-3. 분류 평가 코드
+| 지표 | 공식 | 의미 | 중요한 상황 |
+|------|------|------|-----------|
+| **Accuracy** | (TP+TN) / 전체 | 전체 정답률 | 클래스 균형 시 |
+| **Precision** | TP / (TP+FP) | 양성 예측의 정확도 | 오탐이 비싼 경우 (스팸 필터) |
+| **Recall** | TP / (TP+FN) | 실제 양성 탐지율 | 미탐이 위험한 경우 (암 진단) |
+| **F1-Score** | 2 × P × R / (P+R) | Precision과 Recall의 균형 | 클래스 불균형 시 |
 
 ```python
 from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    classification_report,
-    roc_auc_score,
-    roc_curve,
-    precision_recall_curve
+    accuracy_score, precision_score, recall_score,
+    f1_score, classification_report, confusion_matrix
 )
 
-pred = model.predict(X_test) # 반환값: 배열
+y_pred = model.predict(X_test)
 
-print("Accuracy:", accuracy_score(y_test, pred))
-print("Precision:", precision_score(y_test, pred))
-print("Recall:", recall_score(y_test, pred))
-print("F1:", f1_score(y_test, pred))
-print(classification_report(y_test, pred)) # 지표를 한 번에 출력
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+tn, fp, fn, tp = cm.ravel()
 
-# 확률값 필요!
-prob = model.predict_proba(X_test)[:, 1] # 클래스 1일 확률만 추출
-print("ROC-AUC:", roc_auc_score(y_test, prob))
-
-fpr, tpr, thresholds = roc_curve(y_true, danger_probabilities)
-print("FPR:", fpr)
-print("TPR:", tpr)
-print("Thresholds:", thresholds)
-
-precision, recall, thresholds = precision_recall_curve(
-    y_true,
-    danger_probabilities
-)
-print("Precision:", precision)
-print("Recall:", recall)
-print("Thresholds:", thresholds)
+print("Accuracy :", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall   :", recall_score(y_test, y_pred))
+print("F1-Score :", f1_score(y_test, y_pred))
+print()
+print(classification_report(y_test, y_pred))  # 한 번에 모두 출력
 ```
 
-> model.score(X_test, y_test) : accuracy 출력
+> 💡 **데이터 불균형** (예: 정상 99%, 이상 1%)이면 Accuracy는 쓸모없습니다.  
+> 이럴 땐 F1-Score를 쓰세요.
 
----
+#### 여러 임계값(Threshold) 기반 평가지표
 
-## 회귀
+확률값에 대한 임계값(Threshold)을 변화시키면서 모델의 성능을 평가하는 지표들이다.
 
-### 6-4. 회귀 평가지표
-
-- R² Score (결정계수): 전체 패턴을 얼마나 잘 설명하는지
+| 지표 | 의미 | 축 / 구성 요소 | 중요한 상황 |
+|--------|------|---------------|-------------|
+| **ROC Curve** | 다양한 임계값에서 모델의 성능 변화를 시각화한 그래프 | X축: FPR = FP / (FP + TN)<br>Y축: TPR = TP / (TP + FN) | 임계값에 따른 성능 변화 확인 |
+| **ROC-AUC** | ROC Curve 아래 면적(AUC)으로, 양성과 음성을 얼마나 잘 구분하는지를 나타내는 지표 | AUC 값 (0~1) | 전체적인 분류 성능 비교 |
+| **Precision-Recall Curve** | 임계값 변화에 따른 Precision과 Recall의 관계를 시각화한 그래프 | X축: Recall<br>Y축: Precision | 클래스 불균형 데이터 |
+| **Average Precision (AP)** | Precision-Recall Curve의 전체 성능을 하나의 값으로 요약한 지표 | Precision-Recall Curve 아래 면적 | 불균형 데이터에서 모델 비교 |
 
 ```python
-from sklearn.metrics import r2_score
+from sklearn.metrics import (
+    roc_curve,
+    roc_auc_score,
+    precision_recall_curve,
+    average_precision_score
+)
 
-r2 = r2_score(y_test, y_pred) # (0 ~ 1) - 1에 가까울수록 좋음
+# 클래스 예측
+y_pred = model.predict(X_test)
+
+# 클래스 1일 확률값 추출
+y_prob = model.predict_proba(X_test)[:, 1]
+
+# ROC-AUC - 확률값을 입력으로 사용
+roc_auc = roc_auc_score(y_test, y_prob)
+print("ROC-AUC:", roc_auc)
+
+# ROC Curve
+fpr, tpr, roc_thresholds = roc_curve(y_test, y_prob)
+
+print("FPR:", fpr)
+print("TPR:", tpr)
+print("Thresholds:", roc_thresholds)
+
+# Precision-Recall Curve - 확률값을 입력으로 사용
+precision, recall, pr_thresholds = precision_recall_curve(
+    y_test,
+    y_prob
+)
+
+print("Precision:", precision)
+print("Recall:", recall)
+print("Thresholds:", pr_thresholds)
+
+# Average Precision (AP)
+ap = average_precision_score(y_test, y_prob)
+print("Average Precision:", ap)
 ```
-
-> model.score(X_test, y_test) : R² Score 출력
-
-- mae
-- mse
-- rmse
 
 ---
 
-# 7. 과적합 (Overfitting), 일반화 (Generalization)
+### 7-2. 회귀 평가
 
-**과적합**: 모델이 학습 데이터를 지나치게 외운 상태
+| 지표 | 공식 | 특징 |
+|------|------|------|
+| **MAE** | (1/n) * Σ|실제값 - 예측값| | 단위가 원래 데이터와 동일, 직관적 |
+| **MSE** | (1/n) * Σ(실제값-예측값)² | 큰 오차에 더 민감 |
+| **RMSE** | √MSE | MSE를 원래 단위로 환원, 가장 많이 씀 |
+| **R² Score** | 0~1, 1에 가까울수록 좋음 | 모델이 얼마나 데이터를 설명하는지 |
 
-```text
-Train 성능 ↑
-Test 성능 ↓
+```python
+from sklearn.metrics import mean_absolute_error, mean_squared_error, root_mean_squared_error, r2_score
+
+y_pred = model.predict(X_test)
+
+print("MAE :", mean_absolute_error(y_test, y_pred))
+print("RMSE:", root_mean_squared_error(y_test, y_pred))
+print("R²  :", r2_score(y_test, y_pred))
 ```
 
-원인
+---
 
-- 데이터가 너무 적음
-- 모델이 너무 복잡함
-- 노이즈까지 학습
-- Feature가 너무 많음
-
-해결 방법
-
-- 데이터 늘리기
-- 모델 단순화
-- 정규화(Regularization)
-- 교차검증(Cross Validation)
+## CHAPTER 8. 과적합과 일반화
 
 **일반화**: 학습하지 않은 새로운 데이터에 대해서도 좋은 성능을 내는 능력
 
----
+### 8-1. 과적합이란?
 
-## 7-1. 정규화 (Regularization)
+모델이 학습 데이터를 지나치게 외운 상태
 
-가중치(파라미터)가 지나치게 커지는 것을 막기 위해 패널티를 부여
-
-목적
-
-```text
-복잡한 모델
-      ↓
-단순한 모델
-      ↓
-과적합 감소
+```
+시험 공부 대신 작년 시험지를 외운 학생
+→ 작년 시험: 100점 / 올해 새 시험: 30점
 ```
 
-대표 예시
+```
+Train Accuracy: 99%  ← 너무 좋음
+Test Accuracy : 65%  ← 실제 성능
+```
 
-- L1 Regularization (Lasso)
-- L2 Regularization (Ridge)
+**원인과 해결책**:
+
+| 원인 | 해결책 |
+|------|--------|
+| 데이터가 너무 적음 | 데이터 수집, 데이터 증강(SMOTE) |
+| 모델이 너무 복잡함 | 모델 단순화 |
+| Feature가 너무 많음 | Feature Selection (Lasso 등) |
+| 노이즈까지 학습 | 정규화(Regularization) |
 
 ---
 
-## 7-2. 교차검증 (Cross Validation)
+### 8-2. 교차검증 (Cross Validation)
 
 학습 데이터를 여러 번 나눠서 학습과 평가를 반복
 
-예시: 5-Fold Cross Validation
-
-```text
-1 2 3 4 | 5 평가
-1 2 3 5 | 4 평가
-1 2 4 5 | 3 평가
-1 3 4 5 | 2 평가
-2 3 4 5 | 1 평가
 ```
+5-Fold 교차검증:
 
-장점
+fold1: [2 3 4 5]로 학습, [1]로 평가
+fold2: [1 3 4 5]로 학습, [2]로 평가
+fold3: [1 2 4 5]로 학습, [3]로 평가
+fold4: [1 2 3 5]로 학습, [4]로 평가
+fold5: [1 2 3 4]로 학습, [5]로 평가
 
-- 데이터 활용 효율 증가
-- 성능 평가 신뢰성 향상
+→ 5번의 성능을 평균냄
+```
 
 ```python
 from sklearn.model_selection import cross_val_score
 
-scores = cross_val_score(model, X, y, cv=5) # cv: 폴드 개수 (기본값: 5)
+scores = cross_val_score(model, X, y, cv=5, scoring="accuracy") # cv: 폴드 수 (기본값: 5)
+
+print("각 폴드 점수:", scores)
+print("평균 점수   :", scores.mean())
+print("표준편차    :", scores.std())   # 작을수록 안정적
 ```
 
 ---
 
-## 7-3. 하이퍼파라미터 튜닝
+### 8-3. 하이퍼파라미터 튜닝 (GridSearchCV)
 
-### 하이퍼파라미터
-
-모델이 학습하기 전에 사람이 정해주는 설정값
-
-```text
-KNN의 n_neighbors
-DecisionTree의 max_depth
-RandomForest의 n_estimators
-SVM의 C, kernel
-GradientBoosting의 learning_rate
-```
-
-### GridSearchCV
-
-여러 하이퍼파라미터 조합을 자동으로 비교
+**하이퍼파라미터**: 사람이 직접 정해주는 설정값 (max_depth, n_estimators 등)
 
 ```python
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 
-# 탐색할 하이퍼파라미터
-param_grid= {
-    "n_estimators": [50,100,200],
-    "max_depth": [3,5,None]
+param_grid = {
+    "n_estimators": [50, 100, 200],
+    "max_depth"   : [3, 5, None]
 }
+# 위 조합: 3 × 3 = 9가지, cv=5면 총 45번 학습
 
-grid=GridSearchCV(
+# GridSearchCV: 여러 하이퍼파라미터 조합을 자동으로 비교
+grid = GridSearchCV(
     RandomForestClassifier(random_state=42),
     param_grid=param_grid,
-    scoring="accuracy", # 기준 - 기본값: model.score(X_train, y_train)
+    scoring="f1",   # 평가 기준
     cv=5,
-    n_jobs=-1 # 병렬 처리할 CPU 코어 개수 (-1: 모든 코어 사용)
-) 
-
-grid.fit(X_train,y_train)
-
-best_model = grid.best_estimator_ # 최적의 파라미터로 학습된 모델
-
-print(grid.best_params_)  # 최적의 하이퍼파라미터 조합
-print(grid.best_score_) # 최적의 하이퍼파라미터 조합의 성능
-```
-
-> `scoring="neg_mean_absolute_error"`:
-> MAE는 낮을수록 좋음 → 음수로 변환해서 최대값을 찾음
-
-### RandomizedSearchCV
-
-조합의 일부를 랜덤하게 선택해서 테스트
-
-```python
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.ensemble import RandomForestClassifier
-
-X, y = make_classification(
-    n_samples=1000,
-    n_features=8,
-    n_classes=2,
-    random_state=42
+    n_jobs=-1       # 병렬 처리할 CPU 코어 개수 (-1: 모든 코어 사용)
 )
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=42
-)
-
-model = RandomForestClassifier(random_state=42)
-
-param_distributions = {
-    "n_estimators": [50, 100, 200, 300],
-    "max_depth": [3, 5, 7, None],
-    "min_samples_split": [2, 5, 10],
-    "min_samples_leaf": [1, 2, 4]
-}
-
+# RandomizedSearchCV: 조합의 일부를 랜덤하게 선택해서 테스트
 random_search = RandomizedSearchCV(
-    estimator=model,
+    estimator=RandomForestRegressor(random_state=42),
     param_distributions=param_distributions,
     n_iter=10, # 탐색할 조합의 개수
     cv=5,
-    scoring="accuracy",
+    scoring="neg_mean_absolute_error", # MAE는 낮을수록 좋음
     random_state=42,
     n_jobs=-1
 )
 
-random_search.fit(X_train, y_train)
+grid.fit(X_train, y_train)
 
-print("최적 파라미터:", random_search.best_params_)
-print("최적 교차검증 점수:", random_search.best_score_)
-print("테스트 점수:", random_search.score(X_test, y_test))
+print("최적 파라미터:", grid.best_params_)
+print("최적 점수    :", grid.best_score_)
+
+best_model = grid.best_estimator_
+y_pred = best_model.predict(X_test)
 ```
 
-### Pipeline + GridSearchCV
+---
+
+## CHAPTER 9. 모델 저장과 재사용
 
 ```python
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.pipeline import Pipeline
+import joblib
+
+# 저장
+joblib.dump(best_model, "my_model.pkl")
+print("모델 저장 완료!")
+
+# 불러오기 (다음에 새로 열 때)
+loaded_model = joblib.load("my_model.pkl")
+y_pred = loaded_model.predict(X_test)
+```
+
+---
+
+## CHAPTER 10. 실전 코드 — 처음부터 끝까지 한 번에
+
+아래 코드는 지금까지 배운 모든 내용을 합친 **완전한 파이프라인**입니다.
+
+```python
+import pandas as pd
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import classification_report
+import joblib
+
+# 데이터 준비
+X, y = make_classification(
+    n_samples=1000, n_features=8, n_classes=2, random_state=42
+)
+
+# 데이터 분리
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
 
 # 컬럼별 전처리
 preprocessor = ColumnTransformer(
@@ -1197,53 +720,52 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-# 파이프라인 생성 (전처리 + 모델)
+# 파이프라인 (전처리 + 모델)
 pipeline = Pipeline([
     ("preprocessor", preprocessor),
     ("model", RandomForestClassifier(random_state=42))
 ])
 
-# 탐색할 하이퍼파라미터
-# Pipeline 내부의 특정 단계 파라미터를 GridSearchCV에서 조절하려면 "단계이름__파라미터이름" 형식으로 지정
+# 하이퍼파라미터 튜닝 - 파이프라인 내부 파라미터 → 단계명__파라미터명
 param_grid = {
     "model__n_estimators": [50, 100, 200],
-    "model__max_depth": [3, 5, None]
+    "model__max_depth"   : [3, 5, None]
 }
 
-# GridSearchCV
-grid = GridSearchCV(
-    estimator=pipeline,
-    param_grid=param_grid,
-    cv=5
-)
-
-# 학습 (전처리 + 교차 검증 + 최적 모델 학습)
+grid = GridSearchCV(pipeline, param_grid, cv=5, scoring="f1", n_jobs=-1)
 grid.fit(X_train, y_train)
 
-# 최적의 하이퍼파라미터
-print(grid.best_params_)
-
-# 최적의 모델
+# 최적 모델로 예측 & 평가
 best_model = grid.best_estimator_
-
-# 예측
 y_pred = best_model.predict(X_test)
+
+print("최적 파라미터:", grid.best_params_)
+print()
+print(classification_report(y_test, y_pred))
+
+# 모델 저장
+joblib.dump(best_model, "best_model.pkl")
+print("모델 저장 완료!")
 ```
 
 ---
 
-# 8. 모델 저장
+## 마무리 — 알고리즘 선택 가이드
 
-## joblib
-
-Python 객체를 파일로 저장하고 불러오는 라이브러리
-
-```python
-import joblib
-
-# 저장
-joblib.dump(model,"robot_fault_model.pkl")
-
-# 불러오기
-loaded_model = joblib.load("robot_fault_model.pkl")
 ```
+문제 파악
+    ↓
+분류? → Logistic Regression으로 시작
+       → 성능 부족 → Random Forest
+       → 더 필요 → Gradient Boosting
+
+회귀? → Linear Regression으로 시작
+       → 과적합 → Ridge / Lasso
+       → 비선형 → Random Forest Regressor
+
+데이터 부족? → KNN, SVM, GaussianNB
+빠른 베이스라인? → Logistic Regression, GaussianNB
+최고 성능 필요? → Gradient Boosting, XGBoost
+```
+
+---
