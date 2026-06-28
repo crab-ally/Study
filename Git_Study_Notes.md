@@ -32,6 +32,8 @@ git branch -M main                    # 브랜치명을 main으로 변경
 git push -u origin main               # 원격 저장소에 업로드
 ```
 
+> 로컬에 새 폴더 생성 시 원격에 새 저장소 생성 후 진행
+
 ### GitHub에서 가져오기
 
 ```bash
