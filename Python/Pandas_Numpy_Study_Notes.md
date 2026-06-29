@@ -427,3 +427,7 @@ df["age"].to_numpy() # Series → NumPy 배열로 변환 (위와 유사)
 | Pandas로 정리한 결과를 가지고 수치 계산을 더 해야 한다 | `df.to_numpy()`로 넘겨서 NumPy로 |
 
 ---
+
+reshape
+squeeze, unsqueeze
+gather

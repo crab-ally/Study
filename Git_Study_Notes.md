@@ -190,3 +190,11 @@ git pull origin main
 git pull --rebase origin main
 결과: A - B - C - D
 ```
+
+---
+
+## 9. gitignore
+
+```
+해당 폴더에 파일(.gitignore) 생성 → 무시할 파일/폴더 경로 지정
+```
