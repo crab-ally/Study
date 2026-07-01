@@ -181,7 +181,7 @@ git remote remove origin           # 연결 해제
 로컬: A - B - D
 
 git pull origin main
-결과: A - B - C - B' - D'
+결과: A - B - C와 D가 합쳐진 Merge 커밋
 
 # rebase 사용
 원격: A - B - C
