@@ -100,77 +100,21 @@ while True:
 
 ## 6. 알고리즘 3종 세트: DQN, A2C, PPO
 
-| 알고리즘 | 핵심 개념 | 한 줄 요약 |
-| --- | --- | --- |
-| **DQN** | Q값 테이블을 신경망으로 근사 | "이 행동 하면 점수 몇 점?" |
-| **A2C** | 정책 + 가치 함수 동시에 학습 | "이 행동을 할 확률은?" |
-| **PPO** | 정책을 안정적으로, 조금씩 업데이트 | "조금씩만 안전하게 개선" |
-
-| 환경 타입 | 추천 알고리즘 |
-| --- | --- |
-| 이산 (좌/우, 버튼) | DQN, PPO, A2C |
-| 연속 (속도, 토크) | PPO, A2C |
+| 알고리즘 | 핵심 개념 | 한 줄 요약 | 환경 |
+| --- | --- | --- | --- |
+| **DQN** | Q값 테이블을 신경망으로 근사 | "이 행동 하면 점수 몇 점?" | 이산 |
+| **A2C** | 정책 + 가치 함수 동시에 학습 | "이 행동을 할 확률은?" | 이산, 연속 |
+| **PPO** | 정책을 안정적으로, 조금씩 업데이트 | "조금씩만 안전하게 개선" | 이산, 연속 |
 
 > ⚠️ **보상 해킹(Reward Hacking)**: AI가 진짜 목표를 달성한 게 아니라, 보상 함수의 허점을 이용해서 보상만 높이는 현상. 예를 들어 "빨리 도착하면 +보상"만 설계하면, 로봇이 벽을 뚫고 지나가는 편법을 학습할 수도 있습니다. (11장에서 자세히 다룹니다)
 
-### 6-1. DQN
+### 추가
 
-```python
-import gymnasium as gym
-from stable_baselines3 import DQN
-
-env = gym.make("CartPole-v1")
-
-model = DQN("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10000)
-
-model.save("dqn_cartpole")
-
-env.close()
-```
-
-- Q값 기반
-- **이산 행동 전용** (연속 제어에는 사용 불가)
-- 단순하지만 제한적 → 버튼형 제어에 적합
-
-### 6-2. A2C
-
-```python
-import gymnasium as gym
-from stable_baselines3 import A2C
-
-env = gym.make("CartPole-v1")
-
-model = A2C("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10000)
-
-model.save("a2c_cartpole")
-
-env.close()
-```
-
-- 정책 기반
-- actor(행동 결정) + critic(가치 평가) 구조
-- 빠른 프로토타이핑에 적합
-
-### 6-3. PPO
-
-```python
-import gymnasium as gym
-from stable_baselines3 import PPO
-
-env = gym.make("CartPole-v1")
-
-model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10000)
-
-model.save("ppo_cartpole")
-
-env.close()
-```
-
-- 안정성 최강
-- **실무 기본값** (로봇 제어, 연속 제어 대부분 PPO로 시작)
+| 알고리즘 | 핵심 개념 | 환경 | 정책 |
+| --- | --- | --- | --- |
+| SAC | 보상 최대화 + entropy(탐색)까지 함께 최적화하는 actor-critic 알고리즘 | 연속 | stochastic, off-policy |
+| DDPG | deterministic policy gradient와 DQN 계열 아이디어를 결합한 actor-critic 알고리즘 | 연속 | deterministic, off-policy |
+| TD3 | DDPG를 개선한 actor-critic 알고리즘 | 연속 | deterministic, off-policy |
 
 ---
 
@@ -178,11 +122,9 @@ env.close()
 
 | 상황 | 추천 |
 | --- | --- |
-| 게임 (버튼 입력) | DQN |
-| 로봇 제어 | PPO |
-| 연속 제어 | PPO |
+| 로봇 제어, 연속 제어, 안정성 중요 | PPO |
 | 빠른 테스트 | A2C |
-| 안정성 중요 | PPO |
+| 게임 (버튼 입력) | DQN |
 
 | 로봇 환경 | 추천 |
 | --- | --- |
@@ -209,6 +151,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from stable_baselines3 import PPO
+from stable_baselines3.common.env_checker import check_env
 
 class SimpleEnv(gym.Env):
 
@@ -251,6 +194,7 @@ class SimpleEnv(gym.Env):
         return self.state, reward, terminated, truncated, {}
 
 env = SimpleEnv()
+check_env(env)  # 환경이 올바르게 구현되었는지 확인
 
 model = PPO("MlpPolicy", env, verbose=1)
 model.learn(total_timesteps=10000)
@@ -304,22 +248,26 @@ for _ in range(50):
 | --- | --- | --- | --- |
 | **gamma (감가율)** | 미래 보상을 얼마나 중요하게 볼 것인가 | 단기 행동만 학습 | 학습 느림 |
 | **learning_rate (학습률)** | 정책을 얼마나 빠르게 바꿀 것인가 | 학습 안됨 | 발산 |
-| **n_steps** (PPO 핵심) | 몇 step 모아서 학습할 것인가 | 빠르지만 불안정 | 안정적이지만 느림 |
-| **batch_size** | 한 번에 업데이트할 데이터 크기 | noisy | 안정적이지만 메모리 多 |
+| **batch_size** | 한 번의 Gradient 업데이트에 사용할 데이터 개수 | noisy | 안정적이지만 메모리 多 |
+| **n_steps** (PPO, A2C) | 학습할 때 사용할 샘플 개수 | 빠르지만 불안정 | 안정적이지만 느림 |
+| **train_freq** (DQN) | 학습할 때 사용할 샘플 개수 | 빠르지만 불안정 | 안정적이지만 느림 |
 
 ```python
 model = PPO(
-    "MlpPolicy",
+    "MlpPolicy",        # Multi-Layer Perceptron 기반 정책 → 입력데이터가 숫자 벡터 형태
     env,
-    learning_rate=3e-4,   # 기본값, 발산하면 낮추기
-    gamma=0.99,           # 장기적 목표일수록 높게
-    n_steps=2048,         # 안정성 우선이면 크게
+    learning_rate=3e-4, # 기본값, 발산하면 낮추기
+    gamma=0.99,         # 장기적 목표일수록 높게
+    n_steps=2048,       # 안정성 우선이면 크게
     batch_size=64,
-    verbose=1
+    verbose=1           # 로그 출력 수준: 0(없음), 1(기본), 2(상세)
 )
 ```
 
-> 💡 실무 팁: 한 번에 여러 하이퍼파라미터를 바꾸지 마세요. 하나씩 바꾸면서 `rollout/ep_rew_mean` 그래프의 변화를 관찰하는 것이 원인을 특정하는 가장 확실한 방법입니다.
+> 💡 실무 팁: 한 번에 여러 하이퍼파라미터를 바꾸지 마세요. 하나씩 바꾸면서 `rollout/ep_rew_mean` 그래프의 변화를 관찰하는 것이 원인을 특정하는 가장 확실한 방법입니다.  
+
+> ent_coef: 정책 기반, 정책이 다양한 행동을 선택하도록 유도하여 탐색을 장려  
+> ε (epsilon): 가치 기반, 일정 확률로 무작위 행동 선택하여 탐색을 장려
 
 ---
 
@@ -356,9 +304,23 @@ print("표준편차:", std_reward)
 - **평균 reward**: 정책의 전반적인 성능
 - **표준편차**: 정책의 일관성 (표준편차가 크면 운에 따라 성능 편차가 큼 → 불안정한 정책)
 
+> 💡 강화학습은 무작위성이 크기 때문에 성능 평가시 여러 번 실행하는 것이 좋습니다.
+
+### Episode 단위 정보 기록
+
+```python
+from stable_baselines3.common.monitor import Monitor
+import gymnasium as gym
+
+env = gym.make("CartPole-v1")
+env = Monitor(env, filename="logs/monitor.csv")
+```
+
 ---
 
 ## 14. 로그 기록 (TensorBoard)
+
+TensorBoard는 학습 로그를 그래프로 확인하는 도구입니다.
 
 ```python
 # 로그 활성화
@@ -380,7 +342,7 @@ tensorboard --logdir=./logs
 | 지표 | 의미 |
 | --- | --- |
 | `rollout/ep_rew_mean` | 평균 보상 (핵심 지표, 우상향해야 정상) |
-| `rollout/ep_len_mean` | 에피소드 길이 |
+| `rollout/ep_len_mean` | 에피소드 평균 길이 |
 | `train/loss` | 학습 안정성 (급격히 튀면 발산 신호) |
 
 ---
@@ -448,7 +410,21 @@ video_env.close()
 
 ---
 
-## 17. ROS2 + 강화학습
+## 17. 모델 저장과 로드
+
+```python
+# 학습된 모델 저장
+model.save("ppo_cartpole")
+
+# 학습된 모델 로드
+model = PPO.load("ppo_cartpole")
+```
+
+> 💡 환경 설정을 기록해야 나중에 같은 환경 설정을 불러와서 사용할 수 있습니다. (yaml, json 등)
+
+---
+
+## 18. ROS2 + 강화학습
 
 지금까지는 시뮬레이터 없이 SB3 기본 환경(`CartPole` 등)이나 직접 만든 `SimpleEnv`로 연습했습니다. 실제 로봇에 적용하려면 **ROS2를 Gym Environment로 감싸는 것**이 핵심입니다. 9장에서 배운 커스텀 환경 구조가 그대로 확장됩니다.
 
@@ -482,7 +458,7 @@ video_env.close()
 | Service | Reset |
 | Action | Episode control |
 
-### 17-1. 기본 구조: ROS2 전체를 step() 안에 넣기
+### 18-1. 기본 구조: ROS2 전체를 step() 안에 넣기
 
 ```python
 class ROS2Env(gym.Env):
