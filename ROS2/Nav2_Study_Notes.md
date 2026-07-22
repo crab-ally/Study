@@ -121,39 +121,23 @@ AMCL 초기 위치를 알려주는 토픽
 
 Costmap은 여러 Layer를 합쳐서 생성된다.
 
-### static_layer
+| 이름 | 설명 |
+|---|---|
+| static_layer | map server가 제공하는 정적 지도(고정된 환경 정보)를 costmap에 반영 |
+| obstacle_layer | 센서 데이터를 사용해 장애물을 costmap에 표시 |
+| inflation_layer | 장애물 주변에 "가까이 가면 위험하다"는 비용 영역 생성 → 벽 바로 옆으로 지나가지 않도록 여유 공간을 주는 기능 |
 
-map server가 제공하는 정적 지도(고정된 환경 정보)를 costmap에 반영
 
-### obstacle_layer
+**obstacle_layer**
 
-센서 데이터를 사용해 장애물을 costmap에 표시
+- marking: 센서가 본 장애물을 costmap에 표시
+- clearing: 센서가 비어 있다고 본 공간의 장애물을 제거
 
-#### marking
+**inflation_layer**
 
-센서가 본 장애물을 costmap에 표시
-
-#### clearing
-
-센서가 비어 있다고 본 공간의 장애물을 제거
-
-### inflation_layer
-
-장애물 주변에 "가까이 가면 위험하다"는 비용 영역 생성
-
-→ 벽 바로 옆으로 지나가지 않도록 여유 공간을 주는 기능
-
-#### robot_radius
-
-로봇을 원(circle)으로 근사
-
-#### footprint
-
-로봇을 다각형(polygon)으로 표현
-
-#### inflation_radius
-
-Inflation Layer가 장애물 주변을 얼마나 넓게 위험 영역으로 표시할지 결정하는 파라미터
+- robot_radius: 로봇을 원(circle)으로 근사
+- footprint: 로봇을 다각형(polygon)으로 표현
+- inflation_radius: Inflation Layer가 장애물 주변을 얼마나 넓게 위험 영역으로 표시할지 결정하는 파라미터
 
 ---
 
@@ -166,8 +150,6 @@ Nav2는 여러 서버(Node)가 협력하여 동작한다.
 goal과 planner plugin을 사용해 전역 경로를 계산
 
 또한 global costmap도 함께 관리
-
----
 
 ## Controller Server
 
